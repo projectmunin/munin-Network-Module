@@ -1,8 +1,4 @@
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
-
 
 public class NetworkRasPI 
 {
@@ -12,16 +8,18 @@ public class NetworkRasPI
 	
 	public static void main(String[] args) throws IOException 
 	{
+		Log log = new Log("D:/test/Network.log");
 		//runNetwork();
-		File logFile = new File("Network.log");
-		PrintWriter pwLogFile = new PrintWriter(new FileWriter(logFile));
-		EncodeDecodeXml xmlEditor = new EncodeDecodeXml(pwLogFile);
-		//xmlEditor.setXmlFileLocation("E:/test/testEditor.xml");
+		
+		EncodeDecodeXml xmlEditor = new EncodeDecodeXml(log);
+		//xmlEditor.setXmlFileLocation("D:/test/testEditor.xml");
+		
+		//Adds data and create xmlfile
 		xmlEditor.createNewXml("D:/test/testEditor.xml");
 	    xmlEditor.addRaspId("ChalmersHC2");
 	    xmlEditor.addLectureHall("hc2");
 	    xmlEditor.addCourseCode("TDA123");
-	    //xmlEditor.addTimeStamp("2014");
+	    xmlEditor.addTimeStamp("2014");
 	    xmlEditor.addLectureTime("NEVER");
 		xmlEditor.encodeImage("D:/test/largeImage.bmp");
 		xmlEditor.decodeImage("D:/test/rLargeImage.bmp");
