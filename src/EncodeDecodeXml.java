@@ -23,7 +23,7 @@ public class EncodeDecodeXml
 	//Set variables should only be change here manually
 	final String bodyName = "data-package";
 	final int specialForAddingData = 5;
-	final int lengthBeforeNoticImage = 200;
+	final int lengthBeforeNoticImage = 50;
 	final int packageSize = 2097152; //65536 doesn't go over heap space
 	
 	//Change here if name of tag wants to be change
