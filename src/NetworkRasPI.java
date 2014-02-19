@@ -19,34 +19,34 @@ public class NetworkRasPi extends Thread
 	public static void main(String[] args) throws IOException, InterruptedException 
 	{
 		//Log things
-		log = new Log("D:/test/Network.log");
+		log = new Log("D:/test/Network.log", true);
 		folderLocation = "D:/test/";
 		
-		runProgram();
-
+		//runProgram();
+		
 
 		
 		//EncodeDecode test
-//		EncodeDecodeXml xmlEditor = new EncodeDecodeXml(log);
-//		//xmlEditor.setXmlFileLocation("D:/test/testEditor.xml");
-//		
-//		//Adds data and create xmlfile
-//		xmlEditor.createNewXml("D:/test/testEditor.xml");
-//	    xmlEditor.addRaspId("ChalmersHC2");
-//	    xmlEditor.addLectureHall("hc2");
-//	    xmlEditor.addCourseCode("TDA123");
-//	    xmlEditor.addTimeStamp("2014");
-//	    xmlEditor.addLectureTime("NEVER");
-//		xmlEditor.encodeImage("D:/test/largeImage.bmp");
-//		xmlEditor.decodeImage("D:/test/rLargeImage.bmp");
-//		
-//		
-//		//Read test
-//		System.out.println("Data read: " + xmlEditor.readRaspId());
-//		System.out.println("Data read: " + xmlEditor.readLectureHall());
-//		System.out.println("Data read: " + xmlEditor.readCourseCode());
-//		System.out.println("Data read: " + xmlEditor.readTimeStamp());
-//		System.out.println("Data read: " + xmlEditor.readLectureTime());		
+		EncodeDecodeXml xmlEditor = new EncodeDecodeXml(log);
+		//xmlEditor.setXmlFileLocation("D:/test/testEditor.xml");
+		
+		//Adds data and create xmlfile
+		xmlEditor.createNewXml("D:/test/testEditor.xml");
+	    xmlEditor.addRaspId("ChalmersHC2");
+	    xmlEditor.addLectureHall("hc2");
+	    xmlEditor.addCourseCode("TDA123");
+	    xmlEditor.addTimeStamp("2014");
+	    xmlEditor.addLectureTime("NEVER");
+		xmlEditor.encodeImage("D:/test/largeImage.bmp");
+		xmlEditor.decodeImage("D:/test/rLargeImage.bmp");
+		
+		
+		//Read test
+		System.out.println("Data read: " + xmlEditor.readRaspId());
+		System.out.println("Data read: " + xmlEditor.readLectureHall());
+		System.out.println("Data read: " + xmlEditor.readCourseCode());
+		System.out.println("Data read: " + xmlEditor.readTimeStamp());
+		System.out.println("Data read: " + xmlEditor.readLectureTime());		
 
      
         //Get the jvm heap size.
@@ -92,12 +92,12 @@ public class NetworkRasPi extends Thread
 		} 
 		catch (IOException e) 
 		{
-			log.write("Network-NetworkRasPi; Error: " + e.getMessage());
+			log.write(false, "Network-NetworkRasPi; Error: " + e.getMessage());
 			System.exit(0);
 		} 
 		catch (InterruptedException e) 
 		{
-			log.write("Network-NetworkRasPi; Error: " + e.getMessage());
+			log.write(false, "Network-NetworkRasPi; Error: " + e.getMessage());
 			System.exit(0);
 		}
 
