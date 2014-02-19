@@ -10,22 +10,28 @@ import static java.nio.file.StandardWatchEventKinds.OVERFLOW;;
 
 public class NetworkRasPi extends Thread
 {
-	static String folderLocation;
-	static String logFolderLocation;
+	static String imageFolderPath;
+	static String xmlFolderPath;
+	
+	static EncodeDecodeXml configReader;
+	
 	static String ip;
 	static int port;
 	static Log log;
 		
 	
-	public static void main(String[] args) throws IOException, InterruptedException 
+	public static void main(String[] args)
 	{
-		//Log things
-		logFolderLocation = "D:/test/";
-		log = new Log(logFolderLocation, true);
-		folderLocation = "D:/test/";
-
+		//Sets folder and Log class
+		log = new Log("D:/test/log/", true);  //Log folders
+		imageFolderPath = "D:/test/image/";
+		xmlFolderPath = "D:/test/xml/";
 		
-		//runProgram();
+		//Loads configfile
+		configReader = new EncodeDecodeXml(log);
+		configReader.setXmlFileLocation("D:/test/config/config.xml"); // config file location
+		
+		runProgram();
 		
 
 		
@@ -35,7 +41,7 @@ public class NetworkRasPi extends Thread
 //		
 //		//Adds data and create xmlfile
 //		xmlEditor.createNewXml("D:/test/testEditor.xml");
-//	    xmlEditor.addRaspId("ChalmersHC2");
+//	    xmlEditor.addRasPiId("ChalmersHC2");
 //	    xmlEditor.addLectureHall("hc2");
 //	    xmlEditor.addCourseCode("TDA123");
 //	    xmlEditor.addTimeStamp("2014");
@@ -45,7 +51,7 @@ public class NetworkRasPi extends Thread
 //		
 //		
 //		//Read test
-//		System.out.println("Data read: " + xmlEditor.readRaspId());
+//		System.out.println("Data read: " + xmlEditor.readRasPiId());
 //		System.out.println("Data read: " + xmlEditor.readLectureHall());
 //		System.out.println("Data read: " + xmlEditor.readCourseCode());
 //		System.out.println("Data read: " + xmlEditor.readTimeStamp());
@@ -65,7 +71,7 @@ public class NetworkRasPi extends Thread
 		{
 			//Watcher things
 			WatchService watcher = FileSystems.getDefault().newWatchService();
-			Path dir = FileSystems.getDefault().getPath(folderLocation);
+			Path dir = FileSystems.getDefault().getPath(imageFolderPath);
 			WatchKey key = dir.register(watcher, ENTRY_CREATE);
 			
 			//Main part
@@ -81,14 +87,17 @@ public class NetworkRasPi extends Thread
 					}
 					
 					WatchEvent<Path> ev = (WatchEvent<Path>)event; //Maybe find safe way?
-					Path fileName = ev.context();
-					String FileLocation = dir.resolve(fileName).toString().replace("\\", "/");
-					while (!isCompletelyWritten(FileLocation))
+					Path imageName = ev.context();
+					String imageFilePath = dir.resolve(imageName).toString().replace("\\", "/");
+					while (!isCompletelyWritten(imageFilePath))
 					{
 						sleep(1000); // Thread sleep so not eat all cpu power.
 					}
-					System.out.println(FileLocation);
-					//Continue write code here
+					System.out.println(imageFilePath); //TODO REMOVE
+					
+					String xmlFile = encodeXmlFile(imageFilePath, imageName.toString());
+					
+					//runNetwork(xmlFile);
 				}
 				key.reset();
 			}
@@ -103,12 +112,26 @@ public class NetworkRasPi extends Thread
 			log.write(false, "Network-NetworkRasPi; Error: " + e.getMessage());
 			System.exit(0);
 		}
-
-		
-
 	}
 	
-	private static void runNetwork()
+	
+	private static String encodeXmlFile(String imageFilePath, String imageName)
+	{
+		EncodeDecodeXml xmlEditor = new EncodeDecodeXml(log);
+		String xmlName = xmlFolderPath + configReader.readRasPiId() + "_" + imageName.split("\\.")[0] + ".xml";
+		xmlEditor.createNewXml(xmlName);
+		System.out.println("xmlfile created"); //TODO REMOVE
+		
+		xmlEditor.addRasPiId(configReader.readRasPiId());
+		xmlEditor.addLectureHall(configReader.readLectureHall());
+		xmlEditor.addCourseCode("ABC123"); //TODO use timeedit class
+		//xmlEditor.addTimeStamp(currentFileName.split("\\_")[0]); //TODO FIX THIS SHIT
+		xmlEditor.addLectureTime("????"); //TODO use timeedit class
+		xmlEditor.encodeImage(imageFilePath);
+		return xmlName;
+	}
+	
+	private static void runNetwork(String xmlFile)
 	{
 		//TODO read from config file
 		ip = "192.168.0.185";

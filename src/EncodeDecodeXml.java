@@ -27,7 +27,7 @@ public class EncodeDecodeXml
 	private final int packageSize = 2097152; //65536 doesn't go over heap space
 	
 	//Change here if name of tag wants to be change
-	private final String raspId = "raspId";
+	private final String rasPiId = "rasPiId";
 	private final String lectureHall = "lectureHall";
 	private final String courseCode = "courseCode";
 	private final String timeStamp = "timeStamp";
@@ -55,6 +55,10 @@ public class EncodeDecodeXml
 	
 	public void setXmlFileLocation(String xmlFileLocation) 
 	{
+		if (xmlFileLocation == "" || xmlFileLocation == null)
+		{
+			log.write(false, "ERROR: Network-EncodeDecodeXml; Cant set xmlFileLocation to nothing");
+		}
 		this.xmlFileLocation = xmlFileLocation;
 	}
 	/**
@@ -97,9 +101,9 @@ public class EncodeDecodeXml
 	}
 	
 	//Simple add methods
-	public void addRaspId (String id)
+	public void addRasPiId (String id)
 	{
-		addOrUpdateStringInXml(id, raspId);
+		addOrUpdateStringInXml(id, rasPiId);
 	}
 	public void addLectureHall (String room)
 	{
@@ -119,9 +123,9 @@ public class EncodeDecodeXml
 	}
 	
 	//Simple Read methods
-	public String readRaspId ()
+	public String readRasPiId ()
 	{
-		return readDataWithinTag(raspId);
+		return readDataWithinTag(rasPiId);
 	}
 	public String readLectureHall ()
 	{
