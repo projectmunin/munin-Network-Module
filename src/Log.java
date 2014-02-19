@@ -16,13 +16,17 @@ public class Log
 	private String logFilePath;
 	private Boolean debugMode;
 	
+	private final String ModuleName = "Network";
+	
 	/**
 	 * Constructor
-	 * @param logFilePath The location of the logFile
+	 * @param logPath The location of the logFile
 	 */
-	public Log (String logFilePath, Boolean debugMode)
+	public Log (String logPath, Boolean debugMode)
 	{
-		this.logFilePath = logFilePath;
+		DateFormat yearMoth = new SimpleDateFormat("yyyy-MM");
+		Date date = new Date();
+		this.logFilePath = logPath + yearMoth.format(date) + "-" + ModuleName + ".log";
 		this.debugMode = debugMode;
 	}
 	
@@ -40,11 +44,12 @@ public class Log
 			{
 				return;
 			}
-			File logFile = new File(logFilePath);
-			RandomAccessFile rLogFile = new RandomAccessFile(logFile, "rw");
 			DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 			DateFormat timeFormat = new SimpleDateFormat("HH:mm:ss:SSS"); 
 			Date date = new Date();
+			
+			File logFile = new File(logFilePath);
+			RandomAccessFile rLogFile = new RandomAccessFile(logFile, "rw");
 			rLogFile.seek(logFile.length());
 			rLogFile.writeBytes(dateFormat.format(date) + ", " + timeFormat.format(date) + "; " + message + "\n");
 			rLogFile.close();

@@ -11,6 +11,7 @@ import static java.nio.file.StandardWatchEventKinds.OVERFLOW;;
 public class NetworkRasPi extends Thread
 {
 	static String folderLocation;
+	static String logFolderLocation;
 	static String ip;
 	static int port;
 	static Log log;
@@ -19,34 +20,36 @@ public class NetworkRasPi extends Thread
 	public static void main(String[] args) throws IOException, InterruptedException 
 	{
 		//Log things
-		log = new Log("D:/test/Network.log", true);
+		logFolderLocation = "D:/test/";
+		log = new Log(logFolderLocation, true);
 		folderLocation = "D:/test/";
+
 		
 		//runProgram();
 		
 
 		
 		//EncodeDecode test
-		EncodeDecodeXml xmlEditor = new EncodeDecodeXml(log);
-		//xmlEditor.setXmlFileLocation("D:/test/testEditor.xml");
-		
-		//Adds data and create xmlfile
-		xmlEditor.createNewXml("D:/test/testEditor.xml");
-	    xmlEditor.addRaspId("ChalmersHC2");
-	    xmlEditor.addLectureHall("hc2");
-	    xmlEditor.addCourseCode("TDA123");
-	    xmlEditor.addTimeStamp("2014");
-	    xmlEditor.addLectureTime("NEVER");
-		xmlEditor.encodeImage("D:/test/largeImage.bmp");
-		xmlEditor.decodeImage("D:/test/rLargeImage.bmp");
-		
-		
-		//Read test
-		System.out.println("Data read: " + xmlEditor.readRaspId());
-		System.out.println("Data read: " + xmlEditor.readLectureHall());
-		System.out.println("Data read: " + xmlEditor.readCourseCode());
-		System.out.println("Data read: " + xmlEditor.readTimeStamp());
-		System.out.println("Data read: " + xmlEditor.readLectureTime());		
+//		EncodeDecodeXml xmlEditor = new EncodeDecodeXml(log);
+//		//xmlEditor.setXmlFileLocation("D:/test/testEditor.xml");
+//		
+//		//Adds data and create xmlfile
+//		xmlEditor.createNewXml("D:/test/testEditor.xml");
+//	    xmlEditor.addRaspId("ChalmersHC2");
+//	    xmlEditor.addLectureHall("hc2");
+//	    xmlEditor.addCourseCode("TDA123");
+//	    xmlEditor.addTimeStamp("2014");
+//	    xmlEditor.addLectureTime("NEVER");
+//		xmlEditor.encodeImage("D:/test/largeImage.bmp");
+//		xmlEditor.decodeImage("D:/test/rLargeImage.bmp");
+//		
+//		
+//		//Read test
+//		System.out.println("Data read: " + xmlEditor.readRaspId());
+//		System.out.println("Data read: " + xmlEditor.readLectureHall());
+//		System.out.println("Data read: " + xmlEditor.readCourseCode());
+//		System.out.println("Data read: " + xmlEditor.readTimeStamp());
+//		System.out.println("Data read: " + xmlEditor.readLectureTime());		
 
      
         //Get the jvm heap size.
