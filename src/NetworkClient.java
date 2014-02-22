@@ -15,9 +15,8 @@ public class NetworkClient
 	private Log log;
 	private String ip;
 	private String serverFolder;
-	private String password;
 	private String serverName;
-	private String linuxCommand = "sshpass -p " + password + " scp ";
+	private String linuxCommand;
 
 	
 	/**
@@ -28,12 +27,11 @@ public class NetworkClient
 		this.log = log;
 		this.ip = "";
 		this.serverFolder = "";
-		this.password = "";
 		this.serverName = "";
 	}
 	
 	/**
-	 * Contstructor
+	 * Constructor
 	 * @param log Which log file to write to
 	 * @param ip The ip address for the target server
 	 * @param serverFolder Where the file should be stored on the server
@@ -45,12 +43,12 @@ public class NetworkClient
 		this.log = log;
 		this.ip = ip;
 		this.serverFolder = serverFolder;
-		this.password = password;
 		this.serverName = serverName;
+		this.linuxCommand = "sshpass -p " + password + " scp ";
 	}
 	
 	/**
-	 * Send the inputet file to the target server with the already set configs
+	 * Sends the input file to the target server with the already set configurations
 	 * @param filePath The location of the file
 	 * @return returns true if the file was send successfully otherwise false
 	 */
@@ -100,7 +98,7 @@ public class NetworkClient
 	
 	public void setPassword (String password)
 	{
-		this.password = password;
+		this.linuxCommand = "sshpass -p " + password + " scp ";
 	}
 	
 	public void setServerName (String serverName)

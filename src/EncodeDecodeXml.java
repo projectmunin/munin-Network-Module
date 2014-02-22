@@ -32,6 +32,10 @@ public class EncodeDecodeXml
 	private final String courseCode = "courseCode";
 	private final String timeStamp = "timeStamp";
 	private final String lectureTime = "lectureTime";
+	private final String serverIp = "serverIp";
+	private final String serverName = "serverName";
+	private final String serverFolder = "serverFolder";
+	private final String serverPassword = "serverPassword";
 	
 	/**
 	 * Constructor
@@ -121,6 +125,23 @@ public class EncodeDecodeXml
 	{
 		addOrUpdateStringInXml(time, lectureTime);
 	}
+	public void addServerIp (String ip) 
+	{
+		addOrUpdateStringInXml(ip, serverIp);
+	}
+	public void addServerName (String name) 
+	{
+		addOrUpdateStringInXml(name, serverName);
+	}
+	public void addServerFolder (String folder) 
+	{
+		addOrUpdateStringInXml(folder, serverFolder);
+	}
+	public void addServerPassword (String password) 
+	{
+		addOrUpdateStringInXml(password, serverPassword);
+	}
+	
 	
 	//Simple Read methods
 	public String readRasPiId ()
@@ -142,6 +163,22 @@ public class EncodeDecodeXml
 	public String readLectureTime ()
 	{
 		return readDataWithinTag(lectureTime);
+	}
+	public String readServerIp ()
+	{
+		return readDataWithinTag(serverIp);
+	}
+	public String readServerName ()
+	{
+		return readDataWithinTag(serverName);
+	}
+	public String readServerFolder ()
+	{
+		return readDataWithinTag(serverFolder);
+	}
+	public String readServerPassword ()
+	{
+		return readDataWithinTag(serverPassword);
 	}
 	
 	/**
@@ -254,6 +291,7 @@ public class EncodeDecodeXml
 			return;
 		}
 	}
+	
 	
 	
 	
@@ -388,11 +426,12 @@ public class EncodeDecodeXml
 				if (line.contains("<" + tagName + ">")) 
 				{
 					br.close();
-					log.write(true, "[SUCCESS] Network-EncodeDecodeXml; Read data from tag: \"" + 
-													tagName + "\" from xmlfile at: " + xmlFileLocation); 
-					return line.substring(tagName.length() + 3, (line.length() - tagName.length() - 3));
+					String tagData = line.substring(tagName.length() + 3, (line.length() - tagName.length() - 3));
 					//The number 3 for the first part is the characters \t, < and >. The second
 					//number 3 is for the characters <, /, and >.
+					log.write(true, "[SUCCESS] Network-EncodeDecodeXml; Read data: \"" + tagData + 
+							"\" from tag: \"" + tagName + "\" from xmlfile at: " + xmlFileLocation); 
+					return tagData;
 				}
 			}
 			br.close();

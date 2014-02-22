@@ -12,18 +12,16 @@ public class NetworkRasPi extends Thread
 {
 	static String imageFolderPath;
 	static String xmlFolderPath;
-	
 	static EncodeDecodeXml configReader;
-	
-	static String ip;
-	static int port;
 	static Log log;
+	static int maxTries = 100; 
+	static int intervallBetweenTries = 10000; //10sec
 		
 	
 	public static void main(String[] args)
 	{
 		//Sets folder and Log class
-		log = new Log("D:/test/log/", true);  //Log folders
+		log = new Log("D:/test/log/", true);  //Log folder
 		imageFolderPath = "D:/test/image/";
 		xmlFolderPath = "D:/test/xml/";
 		
@@ -65,6 +63,10 @@ public class NetworkRasPi extends Thread
         //System.out.println("Heap Size = " + heapSize);
 	}
 	
+	/**
+	 * Runs the program. This method mostly check a folder continues for new files. If a new file
+	 * encode it to xml and sends the file.
+	 */
 	private static void runProgram ()
 	{
 		try 
@@ -97,19 +99,20 @@ public class NetworkRasPi extends Thread
 					
 					String xmlFile = encodeXmlFile(imageFilePath, imageName.toString());
 					
-					//runNetwork(xmlFile);
+					sendFile(xmlFile);
+					System.out.println("Sent file"); //TODO REMOVE
 				}
 				key.reset();
 			}
 		} 
 		catch (IOException e) 
 		{
-			log.write(false, "Network-NetworkRasPi; [ERROR] " + e.getMessage());
+			log.write(false, "[ERROR] Network-NetworkRasPi; " + e.getMessage());
 			System.exit(0);
 		} 
 		catch (InterruptedException e) 
 		{
-			log.write(false, "Network-NetworkRasPi; [ERROR] " + e.getMessage());
+			log.write(false, "[ERROR] Network-NetworkRasPi; " + e.getMessage());
 			System.exit(0);
 		}
 	}
@@ -120,7 +123,7 @@ public class NetworkRasPi extends Thread
 	 * @param imageName The name of the image file
 	 * @return The name of the xmlfile that was created
 	 */
-	private static String encodeXmlFile(String imageFilePath, String imageName)
+	private static String encodeXmlFile (String imageFilePath, String imageName)
 	{
 		EncodeDecodeXml xmlEditor = new EncodeDecodeXml(log);
 		String xmlName = xmlFolderPath + configReader.readRasPiId() + "_" + imageName.split("\\.")[0] + ".xml";
@@ -130,12 +133,48 @@ public class NetworkRasPi extends Thread
 		xmlEditor.addRasPiId(configReader.readRasPiId());
 		xmlEditor.addLectureHall(configReader.readLectureHall());
 		xmlEditor.addCourseCode("ABC123"); //TODO use timeedit class
-		//xmlEditor.addTimeStamp(currentFileName.split("\\_")[0]); //TODO FIX THIS SHIT
+		xmlEditor.addTimeStamp(imageName.substring(0, 19)); //Change here if fileName for images changes!!!
 		xmlEditor.addLectureTime("????"); //TODO use timeedit class
 		xmlEditor.encodeImage(imageFilePath);
 		return xmlName;
 	}
 	
+	/**
+	 * Sends the input file to the server defined in the configfile. 
+	 * @param xmlFilePath xmlfile Location
+	 */
+	private static void sendFile (String xmlFilePath)
+	{ 
+		try
+		{
+			NetworkClient client = new NetworkClient(log, 
+													configReader.readServerIp(), 
+													configReader.readServerFolder(), 
+													configReader.readServerPassword(), 
+													configReader.readServerName());
+			System.out.println("sending file: " + xmlFilePath); //TODO remove
+			
+			int tries;
+			for (tries = 0; tries < maxTries; tries++)
+			{
+				if (client.sendFile(xmlFilePath))
+				{
+					break;
+				}
+				sleep(intervallBetweenTries);
+			}
+			if (tries >= maxTries)
+			{
+				log.write(false, "[ERROR] Network-NetworkRasPi; Tried " + tries + 
+						" times to send file: \"" + xmlFilePath + "\" To: " + configReader.readServerIp());
+				//TODO Make something that handles what will happen if we tried sending file to much?
+			} 
+		}
+		catch (InterruptedException e) 
+		{
+			log.write(false, "[ERROR] Network-NetworkRasPi; " + e.getMessage());
+		}
+	}
 	
 	/**
 	 * Checks if a file has been completely written 
