@@ -1,100 +1,111 @@
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.net.Socket;
 
 
 /**
- * Handles everything how a file will be sent
- * @author P.Andersson
- *
- */
-public class NetworkClient 
+* Handles everything how a file will be sent to destination
+* @author P.Andersson
+*/
+public class NetworkClient
 {
+
 	//Private class variables
-	private String fileLocation;
+	//private String password = "server";
+	//private String serverFolder = ":~/home/panda";
+	//private String serverName = "panda";
+	private Log log;
 	private String ip;
-	private int port;
+	private String serverFolder;
+	private String password;
+	private String serverName;
+	private String linuxCommand = "sshpass -p " + password + " scp ";
+
 	
 	/**
-	 * Constructor, sets default values to private variables.
-	 */
-	public NetworkClient ()
+	* Constructor, sets default values to private variables.
+	*/
+	public NetworkClient (Log log)
 	{
-		this.fileLocation = "";
+		this.log = log;
 		this.ip = "";
-		this.port = 0;
+		this.serverFolder = "";
+		this.password = "";
+		this.serverName = "";
 	}
 	
 	/**
-	 * Sends a file to the target ip
-	 * @return true if the file was sent, otherwise false
+	 * Contstructor
+	 * @param log Which log file to write to
+	 * @param ip The ip address for the target server
+	 * @param serverFolder Where the file should be stored on the server
+	 * @param password The servers password
+	 * @param serverName The name of the server
 	 */
-	public boolean sendFile ()
+	public NetworkClient (Log log, String ip, String serverFolder, String password, String serverName)
+	{
+		this.log = log;
+		this.ip = ip;
+		this.serverFolder = serverFolder;
+		this.password = password;
+		this.serverName = serverName;
+	}
+	
+	/**
+	 * Send the inputet file to the target server with the already set configs
+	 * @param filePath The location of the file
+	 * @return returns true if the file was send successfully otherwise false
+	 */
+	public boolean sendFile (String filePath)
 	{
 		try 
 		{
-			Socket sock = new Socket(ip, port);
-			System.out.println("Client connected to server with ip:" + ip + " and port:" + port);  //TODO write to logg-file
-			File file = new File(fileLocation);
-			byte[] fileByteArray = new byte[longToInt(file.length())];
-			
-			BufferedInputStream bInputStream = new BufferedInputStream(new FileInputStream(file));
-			bInputStream.read(fileByteArray, 0, fileByteArray.length);
-			bInputStream.close();
-			
-			OutputStream sendStream = sock.getOutputStream();
-			System.out.println("Sedning file");  //TODO write to logg-file
-			sendStream.write(fileByteArray, 0, fileByteArray.length);
-			sendStream.flush();
-			
-			sock.close();
-			System.out.println("File sent");  //TODO write to logg-file
-			return true;
-		}
-		catch (IOException e)
+			Process externProgram;
+			externProgram = Runtime.getRuntime().exec(linuxCommand + filePath + 
+					" " + serverName + "@" + ip + serverFolder);
+			if (externProgram.waitFor() == 0)
+			{
+				log.write(false, "[SECCESS] Network-NetworkClient; Sent file: \"" + 
+							filePath + "\" To: " + serverName + "@" + ip + serverFolder);
+				return true;
+			}
+			else
+			{
+				log.write(false, "[ERROR] Network-NetworkClient; Could not send file: \"" + 
+								filePath + "\" To: " + serverName + "@" + ip + serverFolder);
+				return false;
+			}
+		} 
+		catch (InterruptedException e) 
 		{
-			System.out.println(e.getMessage());
+			log.write(false, "[ERROR] Network-NetworkClient; " + e.getMessage());
 			return false;
 		}
+		catch (IOException e) 
+		{
+			log.write(false, "[ERROR] Network-NetworkClient; " + e.getMessage());
+			return false;
+		} 
 	}
 	
-	/**
-	 * Sets which file to be sent
-	 * @param fileLocation	Where the file is located 
-	 */
-	public void setFileLocation (String inputFileLocation)
-	{
-		fileLocation = inputFileLocation;
-	}
-	
-	/**
-	 * Sets the ip-address
-	 * @param inputIp	The target ip-address
-	 */
+
+	//Set methods
 	public void setIp (String inputIp)
 	{
-		ip = inputIp;
-	}
-	/**
-	 * Sets the port number
-	 * @param inputPort	The target port number
-	 */
-	public void setPort (int inputPort) 
-	{
-		port = inputPort;
+		this.ip = inputIp;
 	}
 	
-	//Privates methods below	
-	private int longToInt (long number) 
+	public void setServerFolder (String serverFolder)
 	{
-		if (number < Integer.MIN_VALUE || number > Integer.MAX_VALUE)
-		{
-			throw new IllegalArgumentException (number + "Cant convert from long to int");
-			//TODO print in LOGG-file
-		}
-		return (int) number;
+		this.serverFolder = serverFolder;
+	}
+	
+	public void setPassword (String password)
+	{
+		this.password = password;
+	}
+	
+	public void setServerName (String serverName)
+	{
+		this.serverName = serverName;
 	}
 }
+

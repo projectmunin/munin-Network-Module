@@ -57,7 +57,7 @@ public class EncodeDecodeXml
 	{
 		if (xmlFileLocation == "" || xmlFileLocation == null)
 		{
-			log.write(false, "ERROR: Network-EncodeDecodeXml; Cant set xmlFileLocation to nothing");
+			log.write(false, "[ERROR] Network-EncodeDecodeXml; Cant set xmlFileLocation to nothing");
 		}
 		this.xmlFileLocation = xmlFileLocation;
 	}
@@ -75,7 +75,7 @@ public class EncodeDecodeXml
 		xmlFile.mkdirs();
 		if (!xmlFile.delete())
 		{
-			log.write(false, "ERROR: Network-EncodeDecodeXml; Could not delete file at: " + xmlFileLocation);
+			log.write(false, "[ERROR] Network-EncodeDecodeXml; Could not delete file at: " + xmlFileLocation);
 			return false;
 		}
 		
@@ -85,17 +85,17 @@ public class EncodeDecodeXml
 			PrintWriter xmlFileWriter = new PrintWriter(xmlFileLocation);
 			xmlFileWriter.println("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<" + bodyName + ">\n</" + bodyName + ">");
 			xmlFileWriter.close();
-			log.write(true, "SUCCESS: Network-EncodeDecodeXml; Created new xml at: " + xmlFileLocation);
+			log.write(true, "[SUCCESS] Network-EncodeDecodeXml; Created new xml at: " + xmlFileLocation);
 			return true;
 		}
 		catch (FileNotFoundException e) 
 		{
-			log.write(false, "ERROR: Network-EncodeDecodeXml; " + e.getMessage());
+			log.write(false, "[ERROR] Network-EncodeDecodeXml; " + e.getMessage());
 			return false;
 		}
 		catch (IOException e)
 		{
-			log.write(false, "ERROR: Network-EncodeDecodeXml; " + e.getMessage());
+			log.write(false, "[ERROR] Network-EncodeDecodeXml; " + e.getMessage());
 			return false;
 		}
 	}
@@ -154,7 +154,7 @@ public class EncodeDecodeXml
 		File imageFile = new File(inputFile);
 		if (!imageFile.isFile()) 
 		{
-			log.write(false, "ERROR: Network-EncodeDecodeXml; " +  inputFile + " is not an existing file"); 
+			log.write(false, "[ERROR] Network-EncodeDecodeXml; " +  inputFile + " is not an existing file"); 
 		    imageFile.delete();
 		    return;
 		}
@@ -169,7 +169,7 @@ public class EncodeDecodeXml
 			long fileIndex = xmlFile.length() - bodyName.length() - specialForAddingData; 
 			if (fileIndex < 0)
 			{	
-				log.write(false, "ERROR: Network-EncodeDecodeXml; Negativ offset " + fileIndex + 
+				log.write(false, "[ERROR] Network-EncodeDecodeXml; Negativ offset " + fileIndex + 
 						", maybe the file at \"" + xmlFileLocation + "\" as not been created corecctly"); 
 				xmlFile.delete();
 				rXmlFile.close();
@@ -203,19 +203,19 @@ public class EncodeDecodeXml
 			
 			//Writes ending tags in xmlfile
 			rXmlFile.writeBytes("</image>\n</" + bodyName + ">");
-			log.write(true, "SUCCESS: Network-EncodeDecodeXml; Encoded image at: \"" + 
+			log.write(true, "[SUCCESS] Network-EncodeDecodeXml; Encoded image at: \"" + 
 										inputFile + "\" to xmlfile at: " + xmlFileLocation); 
 			rXmlFile.close();
 			bInputStream.close();
 		} 
 		catch (FileNotFoundException e) 
 		{
-			log.write(false, "ERROR: Network-EncodeDecodeXml; " + e.getMessage()); 
+			log.write(false, "[ERROR] Network-EncodeDecodeXml; " + e.getMessage()); 
 			return;
 		} 
 		catch (IOException e) 
 		{
-			log.write(false, "ERROR: Network-EncodeDecodeXml; " + e.getMessage()); 
+			log.write(false, "[ERROR] Network-EncodeDecodeXml; " + e.getMessage()); 
 			return;
 		}
 	}
@@ -231,7 +231,7 @@ public class EncodeDecodeXml
 			String readData = readDataWithinTag("image");
 			if (readData == "error" || readData == "")
 			{
-				log.write(false, "ERROR: Network-EncodeDecodeXml; Cant read image tag from file \"" + xmlFileLocation + "\"");
+				log.write(false, "[ERROR] Network-EncodeDecodeXml; Cant read image tag from file \"" + xmlFileLocation + "\"");
 				return;
 			}
 			byte[] decodedImage = DatatypeConverter.parseBase64Binary(readData);
@@ -240,17 +240,17 @@ public class EncodeDecodeXml
 							new BufferedOutputStream(new FileOutputStream(outputFileLocation));
 			outputStream.write(decodedImage);
 			outputStream.close();
-			log.write(true, "SUCCESS: Network-EncodeDecodeXml; Decoded image in xmlfile: \"" + 
+			log.write(true, "[SUCCESS] Network-EncodeDecodeXml; Decoded image in xmlfile: \"" + 
 					xmlFileLocation + "\" to image at: " + outputFileLocation); 
 		} 
 		catch (FileNotFoundException e) 
 		{
-			log.write(false, "ERROR: Network-EncodeDecodeXml; " + e.getMessage()); 
+			log.write(false, "[ERROR] Network-EncodeDecodeXml; " + e.getMessage()); 
 			return;
 		} 
 		catch (IOException e) 
 		{
-			log.write(false, "ERROR: Network-EncodeDecodeXml; " + e.getMessage());
+			log.write(false, "[ERROR] Network-EncodeDecodeXml; " + e.getMessage());
 			return;
 		}
 	}
@@ -276,7 +276,7 @@ public class EncodeDecodeXml
 			int fileIndex = longToInt(xmlFile.length() - bodyName.length() - specialForAddingData); 
 			if (fileIndex < 0)
 			{	
-				log.write(false, "ERROR: Network-EncodeDecodeXml; Negativ offset " + fileIndex + 
+				log.write(false, "[ERROR] Network-EncodeDecodeXml; Negativ offset " + fileIndex + 
 						", maybe the file at \"" + xmlFileLocation + "\" as not been created corecctly"); 
 				xmlFile.delete();
 				rXmlFile.close();
@@ -290,17 +290,17 @@ public class EncodeDecodeXml
 			{											   //with long strings that represent the image data in base64
 				tagData = "image base64 encoding";
 			}
-			log.write(true, "SUCCESS: Network-EncodeDecodeXml; Add data: \"" + tagData + 
+			log.write(true, "[SUCCESS] Network-EncodeDecodeXml; Add data: \"" + tagData + 
 						"\" in tag: \"" + tagName + "\" to xmlfile at: " + xmlFileLocation); 
 		} 
 		catch (FileNotFoundException e) 
 		{
-			log.write(false, "ERROR: Network-EncodeDecodeXml; " + e.getMessage()); 
+			log.write(false, "[ERROR] Network-EncodeDecodeXml; " + e.getMessage()); 
 			return;
 		}
 		catch (IOException e)
 		{
-			log.write(false, "ERROR: Network-EncodeDecodeXml; " + e.getMessage()); 
+			log.write(false, "[ERROR] Network-EncodeDecodeXml; " + e.getMessage()); 
 			return;
 		}	
 	}
@@ -318,7 +318,7 @@ public class EncodeDecodeXml
 			
 			if (!originalFile.isFile()) 
 			{
-				log.write(false, "ERROR: Network-EncodeDecodeXml; " + xmlFileLocation + " is not an existing file");
+				log.write(false, "[ERROR] Network-EncodeDecodeXml; " + xmlFileLocation + " is not an existing file");
 			    originalFile.delete();
 			    return;
 			}
@@ -341,23 +341,23 @@ public class EncodeDecodeXml
 			
 			if (!originalFile.delete())
 			{
-				log.write(false, "ERROR: Network-EncodeDecodeXml; Couldn't delete file at: " + xmlFileLocation); 
+				log.write(false, "[ERROR] Network-EncodeDecodeXml; Couldn't delete file at: " + xmlFileLocation); 
 				return;
 			}
 			
 			if (!tmpFile.renameTo(originalFile))
 			{
-				log.write(false, "ERROR: Network-EncodeDecodeXml; Couldn't rename file at: " + tmpFile.getAbsolutePath()); 
+				log.write(false, "[ERROR] Network-EncodeDecodeXml; Couldn't rename file at: " + tmpFile.getAbsolutePath()); 
 			}
 		} 
 		catch (FileNotFoundException e) 
 		{
-			log.write(false, "ERROR: Network-EncodeDecodeXml; " + e.getMessage());
+			log.write(false, "[ERROR] Network-EncodeDecodeXml; " + e.getMessage());
 			return;
 		}
 		catch (IOException e) 
 		{
-			log.write(false, "ERROR: Network-EncodeDecodeXml; " + e.getMessage());
+			log.write(false, "[ERROR] Network-EncodeDecodeXml; " + e.getMessage());
 			return;
 		}
 	}
@@ -375,7 +375,7 @@ public class EncodeDecodeXml
 			File xmlFile = new File(xmlFileLocation);
 			if (!xmlFile.isFile()) 
 			{
-				log.write(false, "ERROR: Network-EncodeDecodeXml; " + xmlFileLocation + " is not an existing file");
+				log.write(false, "[ERROR] Network-EncodeDecodeXml; " + xmlFileLocation + " is not an existing file");
 			    xmlFile.delete();
 			    return "error";
 			}
@@ -388,7 +388,7 @@ public class EncodeDecodeXml
 				if (line.contains("<" + tagName + ">")) 
 				{
 					br.close();
-					log.write(true, "SUCCESS: Network-EncodeDecodeXml; Read data from tag: \"" + 
+					log.write(true, "[SUCCESS] Network-EncodeDecodeXml; Read data from tag: \"" + 
 													tagName + "\" from xmlfile at: " + xmlFileLocation); 
 					return line.substring(tagName.length() + 3, (line.length() - tagName.length() - 3));
 					//The number 3 for the first part is the characters \t, < and >. The second
@@ -396,18 +396,18 @@ public class EncodeDecodeXml
 				}
 			}
 			br.close();
-			log.write(false, "WARNING: Network-EncodeDecodeXml; The tag: \"" + tagName + 
+			log.write(false, "[WARNING] Network-EncodeDecodeXml; The tag: \"" + tagName + 
 								"\" dosen't exists in xmlfile at: " + xmlFileLocation);
 			return "";
 		} 
 		catch (FileNotFoundException e) 
 		{
-			log.write(false, "ERROR: Network-EncodeDecodeXml; " + e.getMessage()); //TODO write to logg-file
+			log.write(false, "[ERROR] Network-EncodeDecodeXml; " + e.getMessage()); //TODO write to logg-file
 			return "error";
 		}
 		catch (IOException e) 
 		{
-			log.write(false, "ERROR: Network-EncodeDecodeXml; " + e.getMessage());
+			log.write(false, "[ERROR] Network-EncodeDecodeXml; " + e.getMessage());
 			return "error";
 		}
 	}
@@ -422,7 +422,7 @@ public class EncodeDecodeXml
 	{
 		if (number < Integer.MIN_VALUE || number > Integer.MAX_VALUE)
 		{
-			log.write(false, "ERROR: Network-EncodeDecodeXml; " + number + "Cant convert from long to int");
+			log.write(false, "[ERROR] Network-EncodeDecodeXml; " + number + "Cant convert from long to int");
 			throw new IllegalArgumentException (number + "Cant convert from long to int");
 			//TODO print in LOGG-file
 		}

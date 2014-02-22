@@ -104,17 +104,22 @@ public class NetworkRasPi extends Thread
 		} 
 		catch (IOException e) 
 		{
-			log.write(false, "Network-NetworkRasPi; Error: " + e.getMessage());
+			log.write(false, "Network-NetworkRasPi; [ERROR] " + e.getMessage());
 			System.exit(0);
 		} 
 		catch (InterruptedException e) 
 		{
-			log.write(false, "Network-NetworkRasPi; Error: " + e.getMessage());
+			log.write(false, "Network-NetworkRasPi; [ERROR] " + e.getMessage());
 			System.exit(0);
 		}
 	}
 	
-	
+	/**
+	 * Creates new xml and adds relevent data to xmlfile like imagedata.
+	 * @param imageFilePath The path for the image file
+	 * @param imageName The name of the image file
+	 * @return The name of the xmlfile that was created
+	 */
 	private static String encodeXmlFile(String imageFilePath, String imageName)
 	{
 		EncodeDecodeXml xmlEditor = new EncodeDecodeXml(log);
@@ -131,17 +136,6 @@ public class NetworkRasPi extends Thread
 		return xmlName;
 	}
 	
-	private static void runNetwork(String xmlFile)
-	{
-		//TODO read from config file
-		ip = "192.168.0.185";
-		port = 55353;
-		NetworkClient network = new NetworkClient();
-		network.setFileLocation("D:/test/send.xml");
-		network.setIp(ip);
-		network.setPort(port);
-		network.sendFile();
-	}
 	
 	/**
 	 * Checks if a file has been completely written 
