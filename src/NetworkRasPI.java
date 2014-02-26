@@ -1,3 +1,4 @@
+import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.file.FileSystems;
@@ -97,10 +98,15 @@ public class NetworkRasPi extends Thread
 					}
 					System.out.println(imageFilePath); //TODO REMOVE
 					
-					String xmlFile = encodeXmlFile(imageFilePath, imageName.toString());
+					String xmlFilePath = encodeXmlFile(imageFilePath, imageName.toString());
 					
-					sendFile(xmlFile);
+					sendFile(xmlFilePath);
 					System.out.println("Sent file"); //TODO REMOVE
+					
+					File imageFile = new File(imageFilePath);
+					imageFile.delete();
+					File xmlFile = new File(xmlFilePath);
+					xmlFile.delete();
 				}
 				key.reset();
 			}
