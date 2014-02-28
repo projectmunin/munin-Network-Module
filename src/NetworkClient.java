@@ -9,9 +9,6 @@ public class NetworkClient
 {
 
 	//Private class variables
-	//private String password = "server";
-	//private String serverFolder = ":~/home/panda";
-	//private String serverName = "panda";
 	private Log log;
 	private String ip;
 	private String serverFolder;

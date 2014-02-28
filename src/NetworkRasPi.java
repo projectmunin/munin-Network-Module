@@ -1,3 +1,4 @@
+import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.file.FileSystems;
@@ -25,7 +26,7 @@ public class NetworkRasPi
 	static Log log;
 	
 	/**
-	 * Initilez the program with start data like folder paths
+	 * Initialize the program with start data like folder paths
 	 * @param args Arguments
 	 */
 	public static void main(String[] args)
@@ -43,9 +44,10 @@ public class NetworkRasPi
 		queue = new SynchronousQueue<String>(true);
 		
 		//Starts threads and folder scanner
-		new Thread(new NetworkRasPiEncodeSend(log, xmlFolderPath, configReader, queue)).start();
-		
-		folderScanner();
+//		new Thread(new NetworkRasPiEncodeSend(log, xmlFolderPath, configReader, queue)).start();
+//		
+//		folderScanner();
+		readExistingImages();
 	}
 	
 	/**
@@ -60,6 +62,9 @@ public class NetworkRasPi
 			WatchService watcher = FileSystems.getDefault().newWatchService();
 			Path dir = FileSystems.getDefault().getPath(imageFolderPath);
 			WatchKey key = dir.register(watcher, ENTRY_CREATE);
+			
+			//Check the folder for images to be added to the queue
+			readExistingImages();
 			
 			//Main part
 			while (true)
@@ -94,6 +99,29 @@ public class NetworkRasPi
 		}
 	}
 	
+	/**
+	 * Read the imagefolder for files. I files are found adds them to the queue
+	 */
+	private static void readExistingImages ()
+	{
+		File folder = new File(imageFolderPath);
+		File[] listOfImages = folder.listFiles();
+		
+		for(int i = 0; i < listOfImages.length; i++)
+		{
+			try 
+			{
+				queue.put(listOfImages[i].getPath());
+				log.write(true, "[SUCCESS] Network-NetworkRasPi; Found file in image folder: \"" + 
+																		listOfImages[i].getPath() + "\""); 
+			} 
+			catch (InterruptedException e) 
+			{
+				log.write(false, "[ERROR] Network-NetworkRasPi; " + e.getMessage());
+			}
+
+		}
+	}
 	/**
 	 * Checks if a file has been completely written 
 	 * @param file The file that will be checked if it has been written completely
