@@ -61,7 +61,7 @@ public class NetworkClient
 					" " + serverName + "@" + ip + serverFolder);
 			if (externProgram.waitFor() == 0)
 			{
-				log.write(false, "[SECCESS] Network-NetworkClient; Sent file: \"" + 
+				log.write(false, "[SUCCESS] Network-NetworkClient; Sent file: \"" + 
 							filePath + "\" To: " + serverName + "@" + ip + serverFolder);
 				return true;
 			}
