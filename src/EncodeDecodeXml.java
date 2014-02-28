@@ -13,7 +13,11 @@ import java.io.RandomAccessFile;
 
 import javax.xml.bind.DatatypeConverter;
 
-
+/**
+ * Handles the xml format for the Raspberry PI
+ * @author P. Andersson
+ *
+ */
 public class EncodeDecodeXml 
 {
 	//Private class variables

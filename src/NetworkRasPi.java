@@ -1,4 +1,3 @@
-import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.file.FileSystems;
@@ -11,6 +10,11 @@ import java.util.concurrent.SynchronousQueue;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.OVERFLOW;;
 
+/**
+ * Main Program for the Raspberry PI. Start this one when on the Raspberry PI. 
+ * @author P. Andersson
+ *
+ */
 public class NetworkRasPi
 {	
 	//Permanent configs
@@ -20,6 +24,10 @@ public class NetworkRasPi
 	static SynchronousQueue<String> queue;
 	static Log log;
 	
+	/**
+	 * Initilez the program with start data like folder paths
+	 * @param args Arguments
+	 */
 	public static void main(String[] args)
 	{
 		//Sets folder and Log class
@@ -38,42 +46,12 @@ public class NetworkRasPi
 		new Thread(new NetworkRasPiEncodeSend(log, xmlFolderPath, configReader, queue)).start();
 		
 		folderScanner();
-
-
-		//EncodeDecode test
-//		EncodeDecodeXml xmlEditor = new EncodeDecodeXml(log);
-//		//xmlEditor.setXmlFileLocation("D:/test/testEditor.xml");
-//		
-//		//Adds data and create xmlfile
-//		xmlEditor.createNewXml("D:/test/testEditor.xml");
-//	    xmlEditor.addRasPiId("ChalmersHC2");
-//	    xmlEditor.addLectureHall("hc2");
-//	    xmlEditor.addCourseCode("TDA123");
-//	    xmlEditor.addTimeStamp("2014");
-//	    xmlEditor.addLectureTime("NEVER");
-//		xmlEditor.encodeImage("D:/test/largeImage.bmp");
-//		xmlEditor.decodeImage("D:/test/rLargeImage.bmp");
-//		
-//		
-//		//Read test
-//		System.out.println("Data read: " + xmlEditor.readRasPiId());
-//		System.out.println("Data read: " + xmlEditor.readLectureHall());
-//		System.out.println("Data read: " + xmlEditor.readCourseCode());
-//		System.out.println("Data read: " + xmlEditor.readTimeStamp());
-//		System.out.println("Data read: " + xmlEditor.readLectureTime());		
-
-     
-        //Get the jvm heap size.
-        //long heapSize = Runtime.getRuntime().totalMemory();
-         
-        //Print the jvm heap size.
-        //System.out.println("Heap Size = " + heapSize);
 	}
 	
 	/**
-	 * Runs the program. This method mostly check a folder continues for new files. If a new file
-	 * encode it to xml and sends the file.
-	 */
+ 	 * Scans the image folder continues . If new files gets moved to the folder, adds the file 
+ 	 * path to the queue.
+ 	 */
 	private static void folderScanner ()
 	{
 		try 

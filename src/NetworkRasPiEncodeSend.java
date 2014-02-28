@@ -1,7 +1,12 @@
 import java.io.File;
 import java.util.concurrent.SynchronousQueue;
 
-
+/**
+ * Continues check the queue for new files. If new file get notice, encode it and sends it to
+ * the server specified in the configfile.
+ * @author P. Andersson
+ *
+ */
 public class NetworkRasPiEncodeSend extends Thread implements Runnable 
 {
 	String xmlFolderPath;
@@ -11,7 +16,17 @@ public class NetworkRasPiEncodeSend extends Thread implements Runnable
 	int maxTries = 100; 
 	int intervallBetweenTries = 10000; //10sec
 	
-	public NetworkRasPiEncodeSend (Log log, String xmlFolderPath, EncodeDecodeXml configReader, SynchronousQueue<String> queue)
+	/**
+	 * Contructor
+	 * @param log The log object
+	 * @param xmlFolderPath	The xml folder path
+	 * @param configReader Where configs sould be read
+	 * @param queue The queue
+	 */
+	public NetworkRasPiEncodeSend (Log log, 
+									String xmlFolderPath, 
+									EncodeDecodeXml configReader, 
+									SynchronousQueue<String> queue)
 	{
 		this.log = log;
 		this.xmlFolderPath = xmlFolderPath;
@@ -19,6 +34,9 @@ public class NetworkRasPiEncodeSend extends Thread implements Runnable
 		this.queue = queue;
 	}
 	
+	/**
+	 * Runs the thread and notice if new file adds to the queue. After that encodes it and sends it 
+	 */
 	public void run () 
 	{
 		try
