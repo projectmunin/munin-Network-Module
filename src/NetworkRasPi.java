@@ -6,18 +6,19 @@ import java.nio.file.Path;
 import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
+import java.util.concurrent.SynchronousQueue;
+
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.OVERFLOW;;
 
-public class NetworkRasPi extends Thread
-{
+public class NetworkRasPi
+{	
+	//Permanent configs
 	static String imageFolderPath;
 	static String xmlFolderPath;
 	static EncodeDecodeXml configReader;
+	static SynchronousQueue<String> queue;
 	static Log log;
-	static int maxTries = 100; 
-	static int intervallBetweenTries = 10000; //10sec
-		
 	
 	public static void main(String[] args)
 	{
@@ -30,10 +31,15 @@ public class NetworkRasPi extends Thread
 		configReader = new EncodeDecodeXml(log);
 		configReader.setXmlFileLocation("D:/test/config/config.xml"); // config file location
 		
-		runProgram();
+		//Init SynchQueue
+		queue = new SynchronousQueue<String>(true);
 		
+		//Starts threads and folder scanner
+		new Thread(new NetworkRasPiEncodeSend(log, xmlFolderPath, configReader, queue)).start();
+		
+		folderScanner();
 
-		
+
 		//EncodeDecode test
 //		EncodeDecodeXml xmlEditor = new EncodeDecodeXml(log);
 //		//xmlEditor.setXmlFileLocation("D:/test/testEditor.xml");
@@ -68,7 +74,7 @@ public class NetworkRasPi extends Thread
 	 * Runs the program. This method mostly check a folder continues for new files. If a new file
 	 * encode it to xml and sends the file.
 	 */
-	private static void runProgram ()
+	private static void folderScanner ()
 	{
 		try 
 		{
@@ -90,23 +96,10 @@ public class NetworkRasPi extends Thread
 					}
 					
 					WatchEvent<Path> ev = (WatchEvent<Path>)event; //Maybe find safe way?
-					Path imageName = ev.context();
-					String imageFilePath = dir.resolve(imageName).toString().replace("\\", "/");
-					while (!isCompletelyWritten(imageFilePath))
-					{
-						sleep(1000); // Thread sleep so not eat all cpu power.
-					}
-					System.out.println(imageFilePath); //TODO REMOVE
+					String imageFilePath = dir.resolve(ev.context()).toString().replace("\\", "/");
 					
-					String xmlFilePath = encodeXmlFile(imageFilePath, imageName.toString());
-					
-					sendFile(xmlFilePath);
-					System.out.println("Sent file"); //TODO REMOVE
-					
-					File imageFile = new File(imageFilePath);
-					imageFile.delete();
-					File xmlFile = new File(xmlFilePath);
-					xmlFile.delete();
+					System.out.println("Notice file in imagefolder"); //TODO remove
+					queue.put(imageFilePath);
 				}
 				key.reset();
 			}
@@ -120,65 +113,6 @@ public class NetworkRasPi extends Thread
 		{
 			log.write(false, "[ERROR] Network-NetworkRasPi; " + e.getMessage());
 			System.exit(0);
-		}
-	}
-	
-	/**
-	 * Creates new xml and adds relevent data to xmlfile like imagedata.
-	 * @param imageFilePath The path for the image file
-	 * @param imageName The name of the image file
-	 * @return The name of the xmlfile that was created
-	 */
-	private static String encodeXmlFile (String imageFilePath, String imageName)
-	{
-		EncodeDecodeXml xmlEditor = new EncodeDecodeXml(log);
-		String xmlName = xmlFolderPath + configReader.readRasPiId() + "_" + imageName.split("\\.")[0] + ".xml";
-		xmlEditor.createNewXml(xmlName);
-		System.out.println("xmlfile created"); //TODO REMOVE
-		
-		xmlEditor.addRasPiId(configReader.readRasPiId());
-		xmlEditor.addLectureHall(configReader.readLectureHall());
-		xmlEditor.addCourseCode("ABC123"); //TODO use timeedit class
-		xmlEditor.addTimeStamp(imageName.substring(0, 19)); //Change here if fileName for images changes!!!
-		xmlEditor.addLectureTime("????"); //TODO use timeedit class
-		xmlEditor.encodeImage(imageFilePath);
-		return xmlName;
-	}
-	
-	/**
-	 * Sends the input file to the server defined in the configfile. 
-	 * @param xmlFilePath xmlfile Location
-	 */
-	private static void sendFile (String xmlFilePath)
-	{ 
-		try
-		{
-			NetworkClient client = new NetworkClient(log, 
-													configReader.readServerIp(), 
-													configReader.readServerFolder(), 
-													configReader.readServerPassword(), 
-													configReader.readServerName());
-			System.out.println("sending file: " + xmlFilePath); //TODO remove
-			
-			int tries;
-			for (tries = 0; tries < maxTries; tries++)
-			{
-				if (client.sendFile(xmlFilePath))
-				{
-					break;
-				}
-				sleep(intervallBetweenTries);
-			}
-			if (tries >= maxTries)
-			{
-				log.write(false, "[ERROR] Network-NetworkRasPi; Tried " + tries + 
-						" times to send file: \"" + xmlFilePath + "\" To: " + configReader.readServerIp());
-				//TODO Make something that handles what will happen if we tried sending file to much?
-			} 
-		}
-		catch (InterruptedException e) 
-		{
-			log.write(false, "[ERROR] Network-NetworkRasPi; " + e.getMessage());
 		}
 	}
 	
@@ -198,6 +132,49 @@ public class NetworkRasPi extends Thread
 		}
 		catch (Exception e){}
 		return false;
+	}
+	
+	/**
+	 * Reads the commands inputs in received array string
+	 * @param args The array that holds all the commands
+	 */
+	private static void readInput (String[] args)
+	{
+		System.out.println(args.length); //TODO REMOVE
+		for (int i=0; i < args.length; i++)
+		{
+			System.out.println(args[i]); //TODO REMOVE
+			if (i-1 < 0)
+			{
+				continue;
+			} 
+			else if (args[i].charAt(0) == '-' && args[i-1].charAt(0) == '-')
+			{
+				System.out.println("[CRITICAL-ERROR] Network-NetworkRasPi; Cant have to command after one other. Error part: \"" + args[i-1] + " " + args[i] + "\".  Write --help for help message");
+				System.exit(0);
+			} 
+			else {
+				switch (args[i-1]) 
+				{
+					case "--imageFolder": 	imageFolderPath = args[i];
+											System.out.println("Adding path to imageFolder"); //TODO REMOVE
+											break;
+					case "--help":			printHelpMessage();
+											break;
+					default:				System.out.println("[CRITICAL-ERROR] Network-NetworkRasPi; Missing command for \"" + args[i] + "\", \"" + args[i-1] + "\" isnt a command. Write --help for help message");
+											System.exit(0);
+				}
+			}
+		}
+	}
+	
+	/**
+	 * Prints the help message and exits
+	 */
+	private static void printHelpMessage()
+	{
+		System.out.println("##### NetworkRasPi Help message #####");
+		System.exit(0);
 	}
 }
 
