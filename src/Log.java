@@ -4,7 +4,6 @@ import java.io.RandomAccessFile;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import sun.org.mozilla.javascript.internal.Synchronizer;
 
 /**
  * Simple log writer that follows syntax with design date and so on.
