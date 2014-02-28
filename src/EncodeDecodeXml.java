@@ -427,9 +427,18 @@ public class EncodeDecodeXml
 				{
 					br.close();
 					String tagData = line.substring(tagName.length() + 3, (line.length() - tagName.length() - 3));
+					String tagDataPrint;
+					if (tagName == serverPassword) //only here so the password dosent show in the log
+					{
+						tagDataPrint = "****";
+					}
+					else 
+					{
+						tagDataPrint = tagData;
+					}
 					//The number 3 for the first part is the characters \t, < and >. The second
 					//number 3 is for the characters <, /, and >.
-					log.write(true, "[SUCCESS] Network-EncodeDecodeXml; Read data: \"" + tagData + 
+					log.write(true, "[SUCCESS] Network-EncodeDecodeXml; Read data: \"" + tagDataPrint + 
 							"\" from tag: \"" + tagName + "\" from xmlfile at: " + xmlFileLocation); 
 					return tagData;
 				}
