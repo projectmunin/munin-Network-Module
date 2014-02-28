@@ -450,7 +450,7 @@ public class EncodeDecodeXml
 		} 
 		catch (FileNotFoundException e) 
 		{
-			log.write(false, "[ERROR] Network-EncodeDecodeXml; " + e.getMessage()); //TODO write to logg-file
+			log.write(false, "[ERROR] Network-EncodeDecodeXml; " + e.getMessage());
 			return "error";
 		}
 		catch (IOException e) 

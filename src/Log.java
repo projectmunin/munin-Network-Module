@@ -4,6 +4,7 @@ import java.io.RandomAccessFile;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import sun.org.mozilla.javascript.internal.Synchronizer;
 
 /**
  * Simple log writer that follows syntax with design date and so on.
@@ -31,11 +32,12 @@ public class Log
 	}
 	
 	/**
-	 * Writes message to file, adds date and other syntax to log file
+	 * Writes message to file, adds date and other syntax to log file. The method is
+	 * synchronized so only one thread can write to the log file at a time.
 	 * @param debugMessage Assign to true if it is a debug message otherwise false
 	 * @param message The message wanted to write to logfile
 	 */
-	public void write (Boolean debugMessage, String message)
+	public synchronized void write (Boolean debugMessage, String message)
 	{
 
 		try 
