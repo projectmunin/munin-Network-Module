@@ -66,6 +66,9 @@ public class NetworkRasPiEncodeSend extends Thread implements Runnable
 
 	}
 	
+	
+	//Private methods below
+	
 	/**
 	 * Creates new xml and adds relevent data to xmlfile like imagedata.
 	 * @param imageFilePath The path for the image file

@@ -1,85 +1,167 @@
-import java.io.BufferedOutputStream;
-import java.io.FileOutputStream;
+import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.ServerSocket;
-import java.net.Socket;
+import java.io.RandomAccessFile;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
+import java.nio.file.WatchEvent;
+import java.nio.file.WatchKey;
+import java.nio.file.WatchService;
+import java.util.concurrent.SynchronousQueue;
+import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
+import static java.nio.file.StandardWatchEventKinds.OVERFLOW;
 
-/**
- * A server class that accepts connection and save the file at target location
- * @author P.Andersson
- *
- */
+
 public class NetworkServer 
 {
-	//Private class variables
-	private int port;
-	private String folderLocation;
+	//Permanent configs
+	static String xmlFolderPath;
+	static Log log;
+	static Boolean debugMode = false;
+	static SynchronousQueue<String> queue;
 	
 	/**
-	 * Empty constructor
+	 * Initialize the program with start data like folder paths
+	 * @param args Arguments
 	 */
-	public NetworkServer ()
+	public static void main(String[] args)
 	{
-		this.port = 0;
-		this.folderLocation = "";
+		//Reads arguments
+		readInput(args);
+		
+		//Sets folder and Log class
+		log = new Log("D:/test/log/", debugMode);  //Log folder
+		xmlFolderPath = "D:/test/image/";
+		
+		//Init SynchQueue
+		queue = new SynchronousQueue<String>(true);
+		
+		//Starts threads and folder scanner
+		folderScanner();
 	}
 	
 	/**
-	 * Runs the networkserver, accepts new connections when ready. 
+	 * Contineus scan folder for new xmlfiles
 	 */
-	public void run () 
+	private static void folderScanner ()
 	{
 		try 
 		{
-			ServerSocket serverSocket = new ServerSocket(port);
-			while (true) 
+			//Watcher things
+			WatchService watcher = FileSystems.getDefault().newWatchService();
+			Path dir = FileSystems.getDefault().getPath(xmlFolderPath);
+			WatchKey key = dir.register(watcher, ENTRY_CREATE);
+			
+			//Check the folder for xml to be added to the queue
+			readExistingXml();
+			
+			//Main part
+			while (true)
 			{
-				System.out.println("Sever listening for connections");  //TODO write to logg-file
-				Socket connection = serverSocket.accept();
-				System.out.println("Server has connection with client that has ip:" + 
-										connection.getInetAddress() + " and port:" +  connection.getPort());  //TODO write to logg-file
+				key = watcher.take();
 				
-				BufferedOutputStream outputStream =
-								new BufferedOutputStream(new FileOutputStream(
-									folderLocation + "/tmp" + System.currentTimeMillis() + ".xml")); //change filename here
-				InputStream inputData = connection.getInputStream();
-				
-				byte[] byteArray = new byte[65536]; //Max size of one package
-
-				//SO BIG FILES GET RECEIVED!
-				int count;
-				while ((count = inputData.read(byteArray)) > 0){
-					System.out.println("countSize " + count);
-					outputStream.write(byteArray, 0, count);
+				for (WatchEvent<?> event: key.pollEvents()) 
+				{
+					if (event.kind() == OVERFLOW)
+					{
+						continue;
+					}
+					
+					WatchEvent<Path> ev = (WatchEvent<Path>)event; //Maybe find safe way?
+					String imageFilePath = dir.resolve(ev.context()).toString().replace("\\", "/");
+					
+					log.print("Notice file in xmlfolder");
+					log.write(true, "[SUCCESS] Network-NetworkRasPi; Found file in xml folder: \"" + 
+							 														imageFilePath + "\""); 
+					queue.put(imageFilePath); //TODO Add things here
 				}
-				//TODO add message and write to logg-file
-				outputStream.close();
-				connection.close();
+				key.reset();
 			}
 		} 
 		catch (IOException e) 
 		{
-			System.out.println(e.getMessage());
+			log.write(false, "[ERROR] Network-NetworkRasPi; " + e.getMessage());
+			System.exit(0);
+		} 
+		catch (InterruptedException e) 
+		{
+			log.write(false, "[ERROR] Network-NetworkRasPi; " + e.getMessage());
+			System.exit(0);
 		}
 	}
 	
 	/**
-	 * Sets the port number
-	 * @param portNumber
+	 * Read the xmlfolder for files. I files are found adds them to the queue
 	 */
-	public void setPort (int portNumber)
+	private static void readExistingXml ()
 	{
-		port = portNumber;
+		File folder = new File(xmlFolderPath);
+		File[] listOfImages = folder.listFiles();
+		
+		for(int i = 0; i < listOfImages.length; i++)
+		{
+			try 
+			{
+				queue.put(listOfImages[i].getPath());
+				log.write(true, "[SUCCESS] Network-NetworkRasPi; Found file in image folder: \"" + 
+																		listOfImages[i].getPath() + "\""); 
+			} 
+			catch (InterruptedException e) 
+			{
+				log.write(false, "[ERROR] Network-NetworkRasPi; " + e.getMessage());
+			}
+		}
 	}
 	
 	/**
-	 * Set the folder location where received files will be saved
-	 * @param folderLocation
+	 * Checks if a file has been completely written 
+	 * @param file The file that will be checked if it has been written completely
+	 * @return true if it has been completely written, otherwise false;
 	 */
-	public void setFolderLocation (String folderLocation)
+	private static boolean isCompletelyWritten (String file)
 	{
-		this.folderLocation = folderLocation;
+		RandomAccessFile rFile = null;
+		try 
+		{
+			rFile = new RandomAccessFile(file, "rw");
+			rFile.close();
+			return true;
+		}
+		catch (Exception e){}
+		return false;
+	} //TODO ADD to NetWorkServerDecodeSave
+	
+	/**
+	 * Reads the commands inputs in received array string
+	 * @param args The array that holds all the commands
+	 */
+	private static void readInput (String[] args)
+	{
+		for (int i=0; i < args.length; i++)
+		{	
+			if (args[i].equals("-h") || args[i].equals("--help"))
+			{
+				printHelpMessage();
+			}
+			else if (args[i].equals("-d") || args[i].equals("--debug"))
+			{
+				debugMode = true;
+			}
+			else
+			{
+				System.out.println("ERROR: \"" + args[i] + "\" Unknow command");
+				System.exit(0);
+			}
+		}
 	}
-
+	
+	/**
+	 * Prints the help message and exits
+	 */
+	private static void printHelpMessage()
+	{
+		System.out.println("###### NetworkRasPi Help message ######");
+		System.out.println(" -d OR --deubg   :Enables debug mode");
+		System.out.println(" -h OR --help    :Displays this message\n");
+		System.exit(0);
+	}
 }

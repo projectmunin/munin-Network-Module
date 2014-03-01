@@ -51,8 +51,7 @@ public class NetworkRasPi
 //		new Thread(new NetworkRasPiEncodeSend(log, xmlFolderPath, configReader, queue)).start();
 //		
 //		folderScanner();
-//		
-//		readExistingImages();
+
 	}
 	
 	/**
@@ -128,23 +127,6 @@ public class NetworkRasPi
 			}
 
 		}
-	}
-	/**
-	 * Checks if a file has been completely written 
-	 * @param file The file that will be checked if it has been written completely
-	 * @return true if it has been completely written, otherwise false;
-	 */
-	private static boolean isCompletelyWritten (String file)
-	{
-		RandomAccessFile rFile = null;
-		try 
-		{
-			rFile = new RandomAccessFile(file, "rw");
-			rFile.close();
-			return true;
-		}
-		catch (Exception e){}
-		return false;
 	}
 	
 	/**
