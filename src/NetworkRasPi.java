@@ -24,6 +24,7 @@ public class NetworkRasPi
 	static EncodeDecodeXml configReader;
 	static SynchronousQueue<String> queue;
 	static Log log;
+	static Boolean debugMode = false;
 	
 	/**
 	 * Initialize the program with start data like folder paths
@@ -31,8 +32,11 @@ public class NetworkRasPi
 	 */
 	public static void main(String[] args)
 	{
+		//Reads arguments
+		readInput(args);
+		
 		//Sets folder and Log class
-		log = new Log("D:/test/log/", true);  //Log folder
+		log = new Log("D:/test/log/", debugMode);  //Log folder
 		imageFolderPath = "D:/test/image/";
 		xmlFolderPath = "D:/test/xml/";
 		
@@ -47,7 +51,8 @@ public class NetworkRasPi
 //		new Thread(new NetworkRasPiEncodeSend(log, xmlFolderPath, configReader, queue)).start();
 //		
 //		folderScanner();
-		readExistingImages();
+//		
+//		readExistingImages();
 	}
 	
 	/**
@@ -81,7 +86,9 @@ public class NetworkRasPi
 					WatchEvent<Path> ev = (WatchEvent<Path>)event; //Maybe find safe way?
 					String imageFilePath = dir.resolve(ev.context()).toString().replace("\\", "/");
 					
-					System.out.println("Notice file in imagefolder"); //TODO remove
+					log.print("Notice file in imagefolder");
+					log.write(true, "[SUCCESS] Network-NetworkRasPi; Found file in image folder: \"" + 
+							 														imageFilePath + "\""); 
 					queue.put(imageFilePath);
 				}
 				key.reset();
@@ -146,30 +153,20 @@ public class NetworkRasPi
 	 */
 	private static void readInput (String[] args)
 	{
-		System.out.println(args.length); //TODO REMOVE
 		for (int i=0; i < args.length; i++)
-		{
-			System.out.println(args[i]); //TODO REMOVE
-			if (i-1 < 0)
+		{	
+			if (args[i].equals("-h") || args[i].equals("--help"))
 			{
-				continue;
-			} 
-			else if (args[i].charAt(0) == '-' && args[i-1].charAt(0) == '-')
+				printHelpMessage();
+			}
+			else if (args[i].equals("-d") || args[i].equals("--debug"))
 			{
-				System.out.println("[CRITICAL-ERROR] Network-NetworkRasPi; Cant have to command after one other. Error part: \"" + args[i-1] + " " + args[i] + "\".  Write --help for help message");
+				debugMode = true;
+			}
+			else
+			{
+				System.out.println("ERROR: \"" + args[i] + "\" Unknow command");
 				System.exit(0);
-			} 
-			else {
-				switch (args[i-1]) 
-				{
-					case "--imageFolder": 	imageFolderPath = args[i];
-											System.out.println("Adding path to imageFolder"); //TODO REMOVE
-											break;
-					case "--help":			printHelpMessage();
-											break;
-					default:				System.out.println("[CRITICAL-ERROR] Network-NetworkRasPi; Missing command for \"" + args[i] + "\", \"" + args[i-1] + "\" isnt a command. Write --help for help message");
-											System.exit(0);
-				}
 			}
 		}
 	}
@@ -179,7 +176,9 @@ public class NetworkRasPi
 	 */
 	private static void printHelpMessage()
 	{
-		System.out.println("##### NetworkRasPi Help message #####");
+		System.out.println("###### NetworkRasPi Help message ######");
+		System.out.println(" -d OR --deubg   :Enables debug mode");
+		System.out.println(" -h OR --help    :Displays this message\n");
 		System.exit(0);
 	}
 }

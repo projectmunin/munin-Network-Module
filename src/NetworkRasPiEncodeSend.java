@@ -44,16 +44,19 @@ public class NetworkRasPiEncodeSend extends Thread implements Runnable
 			while (true)
 			{
 				String imageFilePath = queue.take();
+				log.print("Noticed file: \"" + imageFilePath + "\"");
 				String imageName = imageFilePath.substring(imageFilePath.lastIndexOf("/") + 1); //The one is for imageName dosent get a / in the name
 				
-				System.out.println("Starting to create xmlfile"); //TODO remove
+				log.print("Starting to create xmlfile");
 				String xmlFilePath = encodeXmlFile(imageFilePath, imageName);
-				System.out.println("Encoded xmlfile at: " + xmlFilePath); //TODO remove
-				System.out.println("Sending file:"); //TODO remove
+				log.print("Encoded xmlfile at: " + xmlFilePath);
+				
+				log.print("Sending xmlfile:");
 				sendFile(xmlFilePath);
-				System.out.println("Sent xmlfile"); //TODO remove
+				log.print("Sent xmlfile");
+				
 				deleteOldFiles(xmlFilePath, imageFilePath);
-				System.out.println("Deleted old files xmlfile"); //TODO remove
+				log.print("Deleted old files xmlfile");
 			}			
 		}
 		catch (InterruptedException e) 

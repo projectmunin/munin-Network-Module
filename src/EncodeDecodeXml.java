@@ -476,7 +476,6 @@ public class EncodeDecodeXml
 		{
 			log.write(false, "[ERROR] Network-EncodeDecodeXml; " + number + "Cant convert from long to int");
 			throw new IllegalArgumentException (number + "Cant convert from long to int");
-			//TODO print in LOGG-file
 		}
 		return (int) number;
 	}	
