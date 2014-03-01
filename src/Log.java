@@ -61,4 +61,16 @@ public class Log
 		}
 	}
 	
+	/**
+	 * Prints message in the console if program is in debug mode
+	 * @param message
+	 */
+	public synchronized void print (String message)
+	{
+		if (debugMode)
+		{
+			System.out.println(message);
+		}
+	}
+	
 }
