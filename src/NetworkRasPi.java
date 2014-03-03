@@ -117,7 +117,6 @@ public class NetworkRasPi
 		{
 			try 
 			{
-				System.out.println(listOfImages[i].getPath().replace("\\", "/"));
 				queue.put(listOfImages[i].getPath().replace("\\", "/"));
 				log.write(true, "[SUCCESS] Network-NetworkRasPi; Found file in image folder: \"" + 
 												listOfImages[i].getPath().replace("\\", "/") + "\""); 

@@ -328,8 +328,8 @@ public class EncodeDecodeXml
 			rXmlFile.writeBytes("\t<" + tagName + ">" + tagData + "</" + tagName + ">\n");
 			rXmlFile.writeBytes("</" + bodyName + ">");
 			rXmlFile.close();
-			if (tagData.length() > lengthBeforeNoticImage) // only here so the log-file wont be spammed 
-			{											   //with long strings that represent the image data in base64
+			if (tagName.equals("image")) // only here so the log-file wont be spammed 
+			{											   
 				tagData = "image base64 encoding";
 			}
 			log.write(true, "[SUCCESS] Network-EncodeDecodeXml; Add data: \"" + tagData + 
@@ -432,7 +432,7 @@ public class EncodeDecodeXml
 					br.close();
 					String tagData;
 					String tagDataPrint;
-					if (tagName == serverPassword || tagName == "image") //only here so the password dosent show in the log
+					if (tagName == serverPassword || tagName.equals("image")) //only here so the password dosent show in the log
 					{
 						tagData = line.substring(tagName.length() + 3, (line.length() - tagName.length() - 3));
 						tagDataPrint = "****";
