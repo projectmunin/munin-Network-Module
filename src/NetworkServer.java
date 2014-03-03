@@ -15,9 +15,11 @@ public class NetworkServer
 {
 	//Permanent configs
 	static String xmlFolderPath;
+	static String imageFileSavePath;
 	static Log log;
 	static Boolean debugMode = false;
 	static SynchronousQueue<String> queue;
+	static int numberOfCores = 4;
 	
 	/**
 	 * Initialize the program with start data like folder paths
@@ -30,12 +32,17 @@ public class NetworkServer
 		
 		//Sets folder and Log class
 		log = new Log("D:/test/log/", debugMode);  //Log folder
-		xmlFolderPath = "D:/test/image/";
+		xmlFolderPath = "D:/test/xml/";
+		imageFileSavePath = "D:/test/savedImages/";
 		
 		//Init SynchQueue
 		queue = new SynchronousQueue<String>(true);
 		
 		//Starts threads and folder scanner
+		for(int i=0; i<numberOfCores; i++)
+		{
+			new Thread(new NetworkServerDecodeSave(log, imageFileSavePath, queue)).start();
+		}
 		folderScanner();
 	}
 	
@@ -70,7 +77,7 @@ public class NetworkServer
 					String imageFilePath = dir.resolve(ev.context()).toString().replace("\\", "/");
 					
 					log.print("Notice file in xmlfolder");
-					log.write(true, "[SUCCESS] Network-NetworkRasPi; Found file in xml folder: \"" + 
+					log.write(true, "[SUCCESS] Network-NetworkServer; Found file in xml folder: \"" + 
 							 														imageFilePath + "\""); 
 					queue.put(imageFilePath); //TODO Add things here
 				}
@@ -79,12 +86,12 @@ public class NetworkServer
 		} 
 		catch (IOException e) 
 		{
-			log.write(false, "[ERROR] Network-NetworkRasPi; " + e.getMessage());
+			log.write(false, "[ERROR] Network-NetworkServer; " + e.getMessage());
 			System.exit(0);
 		} 
 		catch (InterruptedException e) 
 		{
-			log.write(false, "[ERROR] Network-NetworkRasPi; " + e.getMessage());
+			log.write(false, "[ERROR] Network-NetworkServer; " + e.getMessage());
 			System.exit(0);
 		}
 	}
@@ -101,34 +108,16 @@ public class NetworkServer
 		{
 			try 
 			{
-				queue.put(listOfImages[i].getPath());
-				log.write(true, "[SUCCESS] Network-NetworkRasPi; Found file in image folder: \"" + 
-																		listOfImages[i].getPath() + "\""); 
+				queue.put(listOfImages[i].getPath().replace("\\", "/"));
+				log.write(true, "[SUCCESS] Network-NetworkServer; Found file in xml folder: \"" + 
+												listOfImages[i].getPath().replace("\\", "/") + "\""); 
 			} 
 			catch (InterruptedException e) 
 			{
-				log.write(false, "[ERROR] Network-NetworkRasPi; " + e.getMessage());
+				log.write(false, "[ERROR] Network-NetworkServer; " + e.getMessage());
 			}
 		}
 	}
-	
-	/**
-	 * Checks if a file has been completely written 
-	 * @param file The file that will be checked if it has been written completely
-	 * @return true if it has been completely written, otherwise false;
-	 */
-	private static boolean isCompletelyWritten (String file)
-	{
-		RandomAccessFile rFile = null;
-		try 
-		{
-			rFile = new RandomAccessFile(file, "rw");
-			rFile.close();
-			return true;
-		}
-		catch (Exception e){}
-		return false;
-	} //TODO ADD to NetWorkServerDecodeSave
 	
 	/**
 	 * Reads the commands inputs in received array string
@@ -146,6 +135,19 @@ public class NetworkServer
 			{
 				debugMode = true;
 			}
+			else if (args[i].equals("-n") || args[i].equals("--numberOfCores"))
+			{
+				try
+				{
+					numberOfCores = Integer.parseInt(args[i+1]);
+					i++;
+				} 
+				catch (NumberFormatException e) 
+				{
+					System.out.println("ERROR: \"" + args[i+1] + " is not a number");
+					System.exit(0);
+				}
+			}
 			else
 			{
 				System.out.println("ERROR: \"" + args[i] + "\" Unknow command");
@@ -159,9 +161,10 @@ public class NetworkServer
 	 */
 	private static void printHelpMessage()
 	{
-		System.out.println("###### NetworkRasPi Help message ######");
-		System.out.println(" -d OR --deubg   :Enables debug mode");
-		System.out.println(" -h OR --help    :Displays this message\n");
+		System.out.println("###### NetworkServer Help message ######");
+		System.out.println(" -d OR --deubg          :Enables debug mode");
+		System.out.println(" -n OR --numberOfCores  :Number of corse the program has to use\n");
+		System.out.println(" -h OR --help           :Displays this message\n");
 		System.exit(0);
 	}
 }

@@ -48,9 +48,9 @@ public class NetworkRasPi
 		queue = new SynchronousQueue<String>(true);
 		
 		//Starts threads and folder scanner
-//		new Thread(new NetworkRasPiEncodeSend(log, xmlFolderPath, configReader, queue)).start();
-//		
-//		folderScanner();
+		new Thread(new NetworkRasPiEncodeSend(log, xmlFolderPath, configReader, queue)).start();
+		
+		folderScanner();
 
 	}
 	
@@ -85,7 +85,7 @@ public class NetworkRasPi
 					WatchEvent<Path> ev = (WatchEvent<Path>)event; //Maybe find safe way?
 					String imageFilePath = dir.resolve(ev.context()).toString().replace("\\", "/");
 					
-					log.print("Notice file in imagefolder");
+					log.print("Notice file in imagefolder " + imageFilePath);
 					log.write(true, "[SUCCESS] Network-NetworkRasPi; Found file in image folder: \"" + 
 							 														imageFilePath + "\""); 
 					queue.put(imageFilePath);
@@ -117,9 +117,10 @@ public class NetworkRasPi
 		{
 			try 
 			{
-				queue.put(listOfImages[i].getPath());
+				System.out.println(listOfImages[i].getPath().replace("\\", "/"));
+				queue.put(listOfImages[i].getPath().replace("\\", "/"));
 				log.write(true, "[SUCCESS] Network-NetworkRasPi; Found file in image folder: \"" + 
-																		listOfImages[i].getPath() + "\""); 
+												listOfImages[i].getPath().replace("\\", "/") + "\""); 
 			} 
 			catch (InterruptedException e) 
 			{

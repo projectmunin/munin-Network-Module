@@ -14,13 +14,13 @@ public class NetworkRasPiEncodeSend extends Thread implements Runnable
 	Log log;
 	SynchronousQueue<String> queue;
 	int maxTries = 100; 
-	int intervallBetweenTries = 10000; //10sec
+	int intervalBetweenTries = 10000; //10sec
 	
 	/**
 	 * Contructor
 	 * @param log The log object
 	 * @param xmlFolderPath	The xml folder path
-	 * @param configReader Where configs sould be read
+	 * @param configReader Where configs should be read
 	 * @param queue The queue
 	 */
 	public NetworkRasPiEncodeSend (Log log, 
@@ -51,19 +51,18 @@ public class NetworkRasPiEncodeSend extends Thread implements Runnable
 				String xmlFilePath = encodeXmlFile(imageFilePath, imageName);
 				log.print("Encoded xmlfile at: " + xmlFilePath);
 				
-				log.print("Sending xmlfile:");
-				sendFile(xmlFilePath);
-				log.print("Sent xmlfile");
+//				log.print("Sending xmlfile:");
+//				sendFile(xmlFilePath);
+//				log.print("Sent xmlfile");
 				
-				deleteOldFiles(xmlFilePath, imageFilePath);
-				log.print("Deleted old files xmlfile");
+//				deleteOldFiles(xmlFilePath, imageFilePath);
+//				log.print("Deleted old files");
 			}			
 		}
 		catch (InterruptedException e) 
 		{
 			log.write(false, "[ERROR] Network-NetworkRasPiEncodeSend; " + e.getMessage());
 		}
-
 	}
 	
 	
@@ -106,7 +105,7 @@ public class NetworkRasPiEncodeSend extends Thread implements Runnable
 			int tries;
             for (tries = 0; !client.sendFile(xmlFilePath) && tries < maxTries; tries++)
             {
-                sleep(intervallBetweenTries);
+                sleep(intervalBetweenTries);
             }
 			if (tries >= maxTries)
 			{

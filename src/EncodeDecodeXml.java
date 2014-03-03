@@ -430,14 +430,16 @@ public class EncodeDecodeXml
 				if (line.contains("<" + tagName + ">")) 
 				{
 					br.close();
-					String tagData = line.substring(tagName.length() + 3, (line.length() - tagName.length() - 3));
+					String tagData;
 					String tagDataPrint;
-					if (tagName == serverPassword) //only here so the password dosent show in the log
+					if (tagName == serverPassword || tagName == "image") //only here so the password dosent show in the log
 					{
+						tagData = line.substring(tagName.length() + 3, (line.length() - tagName.length() - 3));
 						tagDataPrint = "****";
 					}
 					else 
 					{
+						tagData = line.substring(tagName.length() + 3, (line.length() - tagName.length() - 3));
 						tagDataPrint = tagData;
 					}
 					//The number 3 for the first part is the characters \t, < and >. The second
