@@ -325,7 +325,7 @@ public class EncodeDecodeXml
 				return;
 			}
 			rXmlFile.seek(fileIndex);
-			rXmlFile.writeBytes("\t<" + tagName + ">" + tagData + "</" + tagName + ">\n");
+			rXmlFile.writeBytes("\t<" + tagName + ">" + tagData + "</" + tagName + ">\n\n");
 			rXmlFile.writeBytes("</" + bodyName + ">");
 			rXmlFile.close();
 			if (tagName.equals("image")) // only here so the log-file wont be spammed 
