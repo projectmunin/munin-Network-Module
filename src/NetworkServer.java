@@ -162,9 +162,9 @@ public class NetworkServer
 	private static void printHelpMessage()
 	{
 		System.out.println("###### NetworkServer Help message ######");
-		System.out.println(" -d OR --deubg          :Enables debug mode");
-		System.out.println(" -n OR --numberOfCores  :Number of corse the program has to use\n");
-		System.out.println(" -h OR --help           :Displays this message\n");
+		System.out.println(" -d OR --deubg              :Enables debug mode");
+		System.out.println(" -n OR --numberOfCores INT  :Number of corse the program has to use\n");
+		System.out.println(" -h OR --help               :Displays this message\n");
 		System.exit(0);
 	}
 }

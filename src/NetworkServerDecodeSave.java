@@ -1,5 +1,7 @@
+import java.io.BufferedReader;
 import java.io.File;
-import java.io.RandomAccessFile;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.concurrent.SynchronousQueue;
 
 
@@ -55,22 +57,45 @@ public class NetworkServerDecodeSave extends Thread implements Runnable
 	}
 	
 	/**
-	 * Checks if a file has been completely written 
+	 * Checks if a file has been completely written. Uses the linux program lsof. ONLY works for linux
 	 * @param file The file that will be checked if it has been written completely
 	 * @return true if it has been completely written, otherwise false;
 	 */
-	private boolean isCompletelyWritten (String file)
+	private boolean isCompletelyWritten (String filePath)
 	{
-		RandomAccessFile rFile = null;
 		try 
 		{
-			rFile = new RandomAccessFile(file, "rw");
-			rFile.close();
-			return true;
+			Process plsof = new ProcessBuilder(new String[]{"lsof", "|", "grep", filePath}).start();
+			BufferedReader reader = new BufferedReader(new InputStreamReader(plsof.getInputStream()));
+			if (reader.readLine() == null)
+			{
+				plsof.destroy();
+				reader.close();
+				return true;
+			}
+			plsof.destroy();
+			reader.close();
+			return false;
+		} 
+		catch (IOException e) 
+		{
+			log.write(false, "[ERROR] Network-NetworkServerDecodeSave; " + e.getMessage());
+			return false;
 		}
-		catch (Exception e){}
-		return false;
 	}
+//	private boolean isCompletelyWritten (String file)
+//	{
+//		RandomAccessFile rFile = null;
+//		try 
+//		{
+//			rFile = new RandomAccessFile(file, "rw");
+//			rFile.close();
+//			return true;
+//		}
+//		catch (Exception e){}
+//		return false;
+//	}
+	
 	
 	/**
 	 * Deletes inputet files
