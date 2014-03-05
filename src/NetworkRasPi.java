@@ -51,7 +51,6 @@ public class NetworkRasPi
 		new Thread(new NetworkRasPiEncodeSend(log, xmlFolderPath, configReader, queue)).start();
 		
 		folderScanner();
-
 	}
 	
 	/**

@@ -25,7 +25,6 @@ public class EncodeDecodeXml
 	private Log log;
 	
 	//Set variables should only be change here manually
-	private final String bodyName = "data-package";
 	private final int specialForAddingData = 5;
 	private final int packageSize = 2097152; //65536 doesn't go over heap space
 	
@@ -72,10 +71,11 @@ public class EncodeDecodeXml
 	 * Creates new xmlfile and writes main body to xmlfile. If xmlfile already exits, 
 	 * deletes old and create new empty xmlfile. Also runs the setXmlFileLocation
 	 * @param xmlFileLocation	where the new xmlfile will be created
+	 * @param bodyName			The body name for the xmlfile
 	 * 
 	 * @return true if it worked, otherwise false
 	 */
-	public synchronized boolean createNewXml (String xmlFileLocation)
+	public synchronized boolean createNewXml (String xmlFileLocation, String bodyName)
 	{
 		this.xmlFileLocation = xmlFileLocation;
 		File xmlFile = new File(xmlFileLocation);
@@ -203,6 +203,7 @@ public class EncodeDecodeXml
 		{
 			//Removes old image line and prepares the new line with start tag.
 			findAndRemoveLine("image");
+			String bodyName = findBodyName();
 			File xmlFile = new File(xmlFileLocation);
 			RandomAccessFile rXmlFile = new RandomAccessFile(xmlFile, "rw");
 			
@@ -307,10 +308,11 @@ public class EncodeDecodeXml
 	 * @param tagData		The data that will be written in the target tag
 	 * @param tagName		Target tag name
 	 */
-	private void addOrUpdateStringInXml (String tagData, String tagName)
+	private synchronized void addOrUpdateStringInXml (String tagData, String tagName)
 	{
 		try 
 		{
+			String bodyName = findBodyName();
 			findAndRemoveLine(tagName);
 			File xmlFile = new File(xmlFileLocation);
 			RandomAccessFile rXmlFile = new RandomAccessFile(xmlFile, "rw");
@@ -351,7 +353,7 @@ public class EncodeDecodeXml
 	 * in "xmlFileLocation"
 	 * @param tagName
 	 */
-	private void findAndRemoveLine (String tagName)
+	private synchronized void findAndRemoveLine (String tagName)
 	{
 		try 
 		{
@@ -400,6 +402,40 @@ public class EncodeDecodeXml
 		{
 			log.write(false, "[ERROR] Network-EncodeDecodeXml; " + e.getMessage());
 			return;
+		}
+	}
+	
+	/**
+	 * Finds out what the body name is for the xmlfile
+	 * @return A string with the body name
+	 */
+	private String findBodyName ()
+	{
+		try 
+		{
+			File xmlFile = new File(xmlFileLocation);
+			if (!xmlFile.isFile()) 
+			{
+				log.write(false, "[ERROR] Network-EncodeDecodeXml; " + xmlFileLocation + " is not an existing file");
+			    xmlFile.delete();
+			    return "error";
+			}
+			BufferedReader br = new BufferedReader(new FileReader(xmlFile));
+			
+			br.readLine(); //Reads first line, non relevent data
+			String bodyName = br.readLine().substring(1).split("\\>")[0]; //Read second line that have body name
+			br.close();
+			return bodyName;
+		} 
+		catch (FileNotFoundException e) 
+		{
+			log.write(false, "[ERROR] Network-EncodeDecodeXml; " + e.getMessage());
+			return "error";
+		} 
+		catch (IOException e)
+		{
+			log.write(false, "[ERROR] Network-EncodeDecodeXml; " + e.getMessage());
+			return "error";
 		}
 	}
 	

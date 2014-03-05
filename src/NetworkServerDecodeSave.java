@@ -4,7 +4,12 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.concurrent.SynchronousQueue;
 
-
+/**
+ * Decodes incoming xmlfile, save the image at correct place and inserts data into data base
+ * 
+ * @author P. Andersson
+ *
+ */
 public class NetworkServerDecodeSave extends Thread implements Runnable 
 {
 	//Priate class variables
@@ -52,7 +57,7 @@ public class NetworkServerDecodeSave extends Thread implements Runnable
 	private void decodeXmlFile (String xmlFilePath)
 	{
 		EncodeDecodeXml xmlEditor = new EncodeDecodeXml(xmlFilePath, log);
-		String imageName =  xmlFilePath.substring(xmlFilePath.lastIndexOf("/") + 1).split("\\.")[0] + ".bmp";
+		String imageName =  xmlFilePath.substring(xmlFilePath.lastIndexOf("/") + 1).split("\\.")[0] + ".bmp"; //Adds file name and image typ
 		xmlEditor.decodeImage(imageFileSavePath + imageName); //TODO fix this use database and save at right folder
 	}
 	
@@ -82,20 +87,7 @@ public class NetworkServerDecodeSave extends Thread implements Runnable
 			log.write(false, "[ERROR] Network-NetworkServerDecodeSave; " + e.getMessage());
 			return false;
 		}
-	}
-//	private boolean isCompletelyWritten (String file)
-//	{
-//		RandomAccessFile rFile = null;
-//		try 
-//		{
-//			rFile = new RandomAccessFile(file, "rw");
-//			rFile.close();
-//			return true;
-//		}
-//		catch (Exception e){}
-//		return false;
-//	}
-	
+	}	
 	
 	/**
 	 * Deletes inputet files

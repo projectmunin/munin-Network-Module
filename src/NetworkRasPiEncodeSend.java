@@ -78,7 +78,7 @@ public class NetworkRasPiEncodeSend extends Thread implements Runnable
 	{
 		EncodeDecodeXml xmlEditor = new EncodeDecodeXml(log);
 		String xmlName = xmlFolderPath + configReader.readRasPiId() + "_" + imageName.split("\\.")[0] + ".xml";
-		xmlEditor.createNewXml(xmlName);
+		xmlEditor.createNewXml(xmlName, "data-package");
 		
 		xmlEditor.addRasPiId(configReader.readRasPiId());
 		xmlEditor.addLectureHall(configReader.readLectureHall());

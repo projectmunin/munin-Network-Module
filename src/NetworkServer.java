@@ -10,7 +10,13 @@ import java.util.concurrent.SynchronousQueue;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.OVERFLOW;
 
-
+/**
+ * Main program for Server. Scans a folder, if notice file sends it to one of the thread 
+ * for decoding and inserting into the data base
+ * 
+ * @author P. Andersson
+ *
+ */
 public class NetworkServer 
 {
 	//Permanent configs
