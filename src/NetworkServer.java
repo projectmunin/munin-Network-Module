@@ -32,7 +32,7 @@ public class NetworkServer
 		
 		//Sets folder and Log class
 		log = new Log("D:/test/log/", debugMode);  //Log folder
-		xmlFolderPath = "D:/test/xml/";
+		xmlFolderPath = "D:/test/receviedXml/";
 		imageFileSavePath = "D:/test/savedImages/";
 		
 		//Init SynchQueue

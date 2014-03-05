@@ -44,7 +44,7 @@ public class NetworkRasPiEncodeSend extends Thread implements Runnable
 			while (true)
 			{
 				String imageFilePath = queue.take();
-				log.print("Noticed file: \"" + imageFilePath + "\"");
+				log.print("Noticed incoming file from queue: \"" + imageFilePath + "\"");
 				String imageName = imageFilePath.substring(imageFilePath.lastIndexOf("/") + 1); //The one is for imageName dosent get a / in the name
 				
 				log.print("Starting to create xmlfile");
