@@ -5,7 +5,7 @@ import java.io.IOException;
 * Handles everything how a file will be sent to destination
 * @author P.Andersson
 */
-public class NetworkClient
+public class NetworkSender
 {
 
 	//Private class variables
@@ -19,7 +19,7 @@ public class NetworkClient
 	/**
 	* Constructor, sets default values to private variables.
 	*/
-	public NetworkClient (Log log)
+	public NetworkSender (Log log)
 	{
 		this.log = log;
 		this.ip = "";
@@ -35,7 +35,7 @@ public class NetworkClient
 	 * @param password The servers password
 	 * @param serverName The name of the server
 	 */
-	public NetworkClient (Log log, String ip, String serverFolder, String password, String serverName)
+	public NetworkSender (Log log, String ip, String serverFolder, String password, String serverName)
 	{
 		this.log = log;
 		this.ip = ip;

@@ -97,7 +97,7 @@ public class NetworkRasPiEncodeSend extends Thread implements Runnable
 	{ 
 		try
 		{
-			NetworkClient client = new NetworkClient(log, 
+			NetworkSender client = new NetworkSender(log, 
 													configReader.readServerIp(), 
 													configReader.readServerFolder(), 
 													configReader.readServerPassword(), 
