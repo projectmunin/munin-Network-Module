@@ -16,7 +16,7 @@ public class NetworkServerDecodeSave extends Thread implements Runnable
 	Log log;
 	SynchronousQueue<String> queue;
 	String imageFileSavePath;
-	int intervalBetweenTries = 500; //0.5secunds
+	int intervalBetweenTries = 500; //0.5seconds
 	
 	public NetworkServerDecodeSave (Log log, String imageFileSavePath, SynchronousQueue<String> queue)
 	{

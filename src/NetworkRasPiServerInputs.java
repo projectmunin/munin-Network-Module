@@ -1,10 +1,17 @@
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.TimeUnit;
 
-
+/**
+ * Starts the camera controller program in lecture starts. Also notice if new configs arrived
+ * from the server.
+ * @author P. Andersson
+ *
+ */
 public class NetworkRasPiServerInputs extends Thread implements Runnable 
 {
 	Log log;
@@ -12,6 +19,7 @@ public class NetworkRasPiServerInputs extends Thread implements Runnable
 	Semaphore configSem;
 	String folderPath;
 	SynchronousQueue<String> queue;
+	int intervalBetweenTries = 500; //0.5seconds
 	
 	public NetworkRasPiServerInputs (Log log, String folderPath, EncodeDecodeXml currentConfig, Semaphore configSem)
 	{
@@ -52,6 +60,11 @@ public class NetworkRasPiServerInputs extends Thread implements Runnable
 	{
 		try 
 		{
+			while(!isCompletelyWritten(xmlFilePath))
+			{
+				sleep(intervalBetweenTries);
+			}
+			
 			configSem.acquire();
 			log.print("Starting to update config file");
 			EncodeDecodeXml newConfig = new EncodeDecodeXml(xmlFilePath, log);
@@ -72,6 +85,34 @@ public class NetworkRasPiServerInputs extends Thread implements Runnable
 			log.write(false, "[ERROR] Network-NetworkRasPiServerInputs; " + e.getMessage());
 		}
 	}
+	
+	/**
+	 * Checks if a file has been completely written. Uses the linux program lsof. ONLY works for linux
+	 * @param file The file that will be checked if it has been written completely
+	 * @return true if it has been completely written, otherwise false;
+	 */
+	private boolean isCompletelyWritten (String filePath)
+	{
+		try 
+		{
+			Process plsof = new ProcessBuilder(new String[]{"lsof", "|", "grep", filePath}).start();
+			BufferedReader reader = new BufferedReader(new InputStreamReader(plsof.getInputStream()));
+			if (reader.readLine() == null)
+			{
+				plsof.destroy();
+				reader.close();
+				return true;
+			}
+			plsof.destroy();
+			reader.close();
+			return false;
+		} 
+		catch (IOException e) 
+		{
+			log.write(false, "[ERROR] Network-NetworkRasPiServerInputs; " + e.getMessage());
+			return false;
+		}
+	}	
 	
 	/**
 	 * Checks if the camera controller should start or not

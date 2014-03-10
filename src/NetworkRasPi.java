@@ -38,8 +38,8 @@ public class NetworkRasPi
 		
 		//Starts threads and folder scanner
 		new Thread(new NetworkRasPiEncodeSend(log, xmlFolderPath, configReader, configSem, queue)).start();
-		//new Thread(new NetworkRasPiServerInputs(log, serverInputFolderPath, configReader, configSem)).start();
-		
+		new Thread(new NetworkRasPiServerInputs(log, serverInputFolderPath, configReader, configSem)).start();
+
 		new ScanFolder(log, imageFolderPath, queue).start();
 	}
 	

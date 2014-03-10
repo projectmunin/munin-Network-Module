@@ -28,7 +28,7 @@ public class ScanFolder extends Thread implements Runnable
 	* Scans the folder continues. If new files gets added to the folder, adds the file 
  	 * path to the queue.
 	*/
-	public void start () 
+	public void run () 
 	{
 		try 
 		{
@@ -53,12 +53,12 @@ public class ScanFolder extends Thread implements Runnable
 					}
 					
 					WatchEvent<Path> ev = (WatchEvent<Path>)event; //Maybe find safe way?
-					String imageFilePath = dir.resolve(ev.context()).toString().replace("\\", "/");
+					String filePath = dir.resolve(ev.context()).toString().replace("\\", "/");
 					
-					log.print("Notice file in imagefolder " + imageFilePath);
+					log.print("Notice file in imagefolder " + filePath);
 					log.write(true, "[SUCCESS] Network-ScanFolder; Found file in image folder: \"" + 
-							 														imageFilePath + "\""); 
-					queue.put(imageFilePath);
+																					filePath + "\""); 
+					queue.put(filePath);
 				}
 				key.reset();
 			}
@@ -95,7 +95,6 @@ public class ScanFolder extends Thread implements Runnable
 			{
 				log.write(false, "[ERROR] Network-ScanFolder; " + e.getMessage());
 			}
-
 		}
 	}
 }
