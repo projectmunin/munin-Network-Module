@@ -56,7 +56,7 @@ public class ScanFolder
 					String imageFilePath = dir.resolve(ev.context()).toString().replace("\\", "/");
 					
 					log.print("Notice file in imagefolder " + imageFilePath);
-					log.write(true, "[SUCCESS] Network-NetworkRasPi; Found file in image folder: \"" + 
+					log.write(true, "[SUCCESS] Network-ScanFolder; Found file in image folder: \"" + 
 							 														imageFilePath + "\""); 
 					queue.put(imageFilePath);
 				}
@@ -65,12 +65,12 @@ public class ScanFolder
 		} 
 		catch (IOException e) 
 		{
-			log.write(false, "[ERROR] Network-NetworkRasPi; " + e.getMessage());
+			log.write(false, "[ERROR] Network-ScanFolder; " + e.getMessage());
 			System.exit(0);
 		} 
 		catch (InterruptedException e) 
 		{
-			log.write(false, "[ERROR] Network-NetworkRasPi; " + e.getMessage());
+			log.write(false, "[ERROR] Network-ScanFolder; " + e.getMessage());
 			System.exit(0);
 		}
 	}
@@ -88,7 +88,7 @@ public class ScanFolder
 			try 
 			{
 				queue.put(listOfFiles[i].getPath().replace("\\", "/"));
-				log.write(true, "[SUCCESS] Network-NetworkRasPi; Found file in image folder: \"" + 
+				log.write(true, "[SUCCESS] Network-ScanFolder; Found file in folder: \"" + 
 												listOfFiles[i].getPath().replace("\\", "/") + "\""); 
 			} 
 			catch (InterruptedException e) 
