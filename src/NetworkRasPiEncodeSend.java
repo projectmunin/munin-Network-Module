@@ -1,4 +1,5 @@
 import java.io.File;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.SynchronousQueue;
 
 /**
@@ -13,8 +14,10 @@ public class NetworkRasPiEncodeSend extends Thread implements Runnable
 	EncodeDecodeXml configReader;
 	Log log;
 	SynchronousQueue<String> queue;
+	Semaphore configSem;
 	int maxTries = 100; 
 	int intervalBetweenTries = 10000; //10sec
+	int longSleep = 54000; //15 minutes
 	
 	/**
 	 * Contructor
@@ -25,12 +28,14 @@ public class NetworkRasPiEncodeSend extends Thread implements Runnable
 	 */
 	public NetworkRasPiEncodeSend (Log log, 
 									String xmlFolderPath, 
-									EncodeDecodeXml configReader, 
+									EncodeDecodeXml configReader,
+									Semaphore configSem,
 									SynchronousQueue<String> queue)
 	{
 		this.log = log;
 		this.xmlFolderPath = xmlFolderPath;
 		this.configReader = configReader;
+		this.configSem = configSem;
 		this.queue = queue;
 	}
 	
@@ -97,11 +102,14 @@ public class NetworkRasPiEncodeSend extends Thread implements Runnable
 	{ 
 		try
 		{
+			configSem.acquire();
 			NetworkSender client = new NetworkSender(log, 
 													configReader.readServerIp(), 
 													configReader.readServerFolder(), 
 													configReader.readServerPassword(), 
-													configReader.readServerName());			
+													configReader.readServerName());	
+			configSem.release();
+			
 			int tries;
             for (tries = 0; !client.sendFile(xmlFilePath) && tries < maxTries; tries++)
             {
@@ -109,9 +117,14 @@ public class NetworkRasPiEncodeSend extends Thread implements Runnable
             }
 			if (tries >= maxTries)
 			{
+				configSem.acquire();
 				log.write(false, "[ERROR] Network-NetworkRasPiEncodeSend; Tried " + tries + 
-						" times to send file: \"" + xmlFilePath + "\" To: " + configReader.readServerIp());
-				//TODO Make something that handles what will happen if we tried sending file to much?
+										" times to send file: \"" + xmlFilePath + "\" To: " + 
+											configReader.readServerIp() + " Trying agian in " + 
+																	longSleep  + " milliseconds");
+				configSem.release();
+				sleep(longSleep);
+				sendFile (xmlFilePath);
 			} 
 		}
 		catch (InterruptedException e) 

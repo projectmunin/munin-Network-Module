@@ -11,7 +11,7 @@ import java.nio.file.WatchService;
 import java.util.concurrent.SynchronousQueue;
 
 
-public class ScanFolder 
+public class ScanFolder extends Thread implements Runnable
 {
 	Log log;
 	String folderPath;

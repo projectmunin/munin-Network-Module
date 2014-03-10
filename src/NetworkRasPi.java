@@ -1,15 +1,5 @@
-import java.io.File;
-import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.nio.file.FileSystems;
-import java.nio.file.Path;
-import java.nio.file.WatchEvent;
-import java.nio.file.WatchKey;
-import java.nio.file.WatchService;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.SynchronousQueue;
-
-import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
-import static java.nio.file.StandardWatchEventKinds.OVERFLOW;;
 
 /**
  * Main Program for the Raspberry PI. Start this one when on the Raspberry PI. 
@@ -19,12 +9,7 @@ import static java.nio.file.StandardWatchEventKinds.OVERFLOW;;
 public class NetworkRasPi
 {	
 	//Permanent configs
-	static String imageFolderPath;
-	static String xmlFolderPath;
-	static EncodeDecodeXml configReader;
-	static SynchronousQueue<String> queue;
-	static Log log;
-	static Boolean debugMode = false;
+	static Boolean debugMode;
 	
 	/**
 	 * Initialize the program with start data like folder paths
@@ -36,19 +21,24 @@ public class NetworkRasPi
 		readInput(args);
 		
 		//Sets folder and Log class
-		log = new Log("D:/test/log/", debugMode);  //Log folder
-		imageFolderPath = "D:/test/image/";
-		xmlFolderPath = "D:/test/xml/";
+		Log log = new Log("D:/test/log/", debugMode);  //Log folder
+		String imageFolderPath = "D:/test/image/";
+		String xmlFolderPath = "D:/test/xml/";
+		String serverInputFolderPath = "D:/test/serverInputs";
 		
 		//Loads configfile
-		configReader = new EncodeDecodeXml(log);
+		EncodeDecodeXml configReader = new EncodeDecodeXml(log);
 		configReader.setXmlFileLocation("D:/test/config/config.xml"); // config file location
 		
 		//Init SynchQueue
-		queue = new SynchronousQueue<String>(true);
+		SynchronousQueue<String> queue = new SynchronousQueue<String>(true);
+		
+		//Init semaphors
+		Semaphore configSem = new Semaphore(1, true);
 		
 		//Starts threads and folder scanner
-		new Thread(new NetworkRasPiEncodeSend(log, xmlFolderPath, configReader, queue)).start();
+		new Thread(new NetworkRasPiEncodeSend(log, xmlFolderPath, configReader, configSem, queue)).start();
+		//new Thread(new NetworkRasPiServerInputs(log, serverInputFolderPath, configReader, configSem)).start();
 		
 		new ScanFolder(log, imageFolderPath, queue).start();
 	}
@@ -59,6 +49,7 @@ public class NetworkRasPi
 	 */
 	private static void readInput (String[] args)
 	{
+		debugMode = false;
 		for (int i=0; i < args.length; i++)
 		{	
 			if (args[i].equals("-h") || args[i].equals("--help"))
