@@ -59,7 +59,7 @@ public class EncodeDecodeXml
 		this.log = logFile;
 	}
 	
-	public synchronized void setXmlFileLocation(String xmlFileLocation) 
+	public void setXmlFileLocation(String xmlFileLocation) 
 	{
 		if (xmlFileLocation == "" || xmlFileLocation == null)
 		{
@@ -75,7 +75,7 @@ public class EncodeDecodeXml
 	 * 
 	 * @return true if it worked, otherwise false
 	 */
-	public synchronized boolean createNewXml (String xmlFileLocation, String bodyName)
+	public boolean createNewXml (String xmlFileLocation, String bodyName)
 	{
 		this.xmlFileLocation = xmlFileLocation;
 		File xmlFile = new File(xmlFileLocation);
@@ -108,39 +108,39 @@ public class EncodeDecodeXml
 	}
 	
 	//Simple add methods
-	public synchronized void addRasPiId (String id)
+	public void addRasPiId (String id)
 	{
 		addOrUpdateStringInXml(id, rasPiId);
 	}
-	public synchronized void addLectureHall (String room)
+	public void addLectureHall (String room)
 	{
 		addOrUpdateStringInXml(room, lectureHall);
 	}
-	public synchronized void addCourseCode (String code)
+	public void addCourseCode (String code)
 	{
 		addOrUpdateStringInXml(code, courseCode);
 	}
-	public synchronized void addTimeStamp (String time)
+	public void addTimeStamp (String time)
 	{
 		addOrUpdateStringInXml(time, timeStamp);
 	}
-	public synchronized void addLectureTime (String time) 
+	public void addLectureTime (String time) 
 	{
 		addOrUpdateStringInXml(time, lectureTime);
 	}
-	public synchronized void addServerIp (String ip) 
+	public void addServerIp (String ip) 
 	{
 		addOrUpdateStringInXml(ip, serverIp);
 	}
-	public synchronized void addServerName (String name) 
+	public void addServerName (String name) 
 	{
 		addOrUpdateStringInXml(name, serverName);
 	}
-	public synchronized void addServerFolder (String folder) 
+	public void addServerFolder (String folder) 
 	{
 		addOrUpdateStringInXml(folder, serverFolder);
 	}
-	public synchronized void addServerPassword (String password) 
+	public void addServerPassword (String password) 
 	{
 		addOrUpdateStringInXml(password, serverPassword);
 	}
@@ -188,7 +188,7 @@ public class EncodeDecodeXml
 	 * Encodes the "inputFile" and saves it in targetxmlfile
 	 * @param inputFile		Target file to be encoded
 	 */
-	public synchronized void encodeImage (String inputFile)
+	public void encodeImage (String inputFile)
 	{
 		//Open target imagefile, if no file reaturns error
 		File imageFile = new File(inputFile);
@@ -265,7 +265,7 @@ public class EncodeDecodeXml
 	 * Reads and decode image from target xmlfile and save it at outputFileLocation
 	 * @param outputFileLocation
 	 */
-	public synchronized void decodeImage (String outputFileLocation)
+	public void decodeImage (String outputFileLocation)
 	{
 		try 
 		{
@@ -308,7 +308,7 @@ public class EncodeDecodeXml
 	 * @param tagData		The data that will be written in the target tag
 	 * @param tagName		Target tag name
 	 */
-	private synchronized void addOrUpdateStringInXml (String tagData, String tagName)
+	private void addOrUpdateStringInXml (String tagData, String tagName)
 	{
 		try 
 		{
@@ -353,7 +353,7 @@ public class EncodeDecodeXml
 	 * in "xmlFileLocation"
 	 * @param tagName
 	 */
-	private synchronized void findAndRemoveLine (String tagName)
+	private void findAndRemoveLine (String tagName)
 	{
 		try 
 		{

@@ -49,80 +49,8 @@ public class NetworkServer
 		{
 			new Thread(new NetworkServerDecodeSave(log, imageFileSavePath, queue)).start();
 		}
-		folderScanner();
-	}
-	
-	/**
-	 * Contineus scan folder for new xmlfiles
-	 */
-	private static void folderScanner ()
-	{
-		try 
-		{
-			//Watcher things
-			WatchService watcher = FileSystems.getDefault().newWatchService();
-			Path dir = FileSystems.getDefault().getPath(xmlFolderPath);
-			WatchKey key = dir.register(watcher, ENTRY_CREATE);
-			
-			//Check the folder for xml to be added to the queue
-			readExistingXml();
-			
-			//Main part
-			while (true)
-			{
-				key = watcher.take();
-				
-				for (WatchEvent<?> event: key.pollEvents()) 
-				{
-					if (event.kind() == OVERFLOW)
-					{
-						continue;
-					}
-					
-					WatchEvent<Path> ev = (WatchEvent<Path>)event; //Maybe find safe way?
-					String imageFilePath = dir.resolve(ev.context()).toString().replace("\\", "/");
-					
-					log.print("Notice file in xmlfolder");
-					log.write(true, "[SUCCESS] Network-NetworkServer; Found file in xml folder: \"" + 
-							 														imageFilePath + "\""); 
-					queue.put(imageFilePath); //TODO Add things here
-				}
-				key.reset();
-			}
-		} 
-		catch (IOException e) 
-		{
-			log.write(false, "[ERROR] Network-NetworkServer; " + e.getMessage());
-			System.exit(0);
-		} 
-		catch (InterruptedException e) 
-		{
-			log.write(false, "[ERROR] Network-NetworkServer; " + e.getMessage());
-			System.exit(0);
-		}
-	}
-	
-	/**
-	 * Read the xmlfolder for files. I files are found adds them to the queue
-	 */
-	private static void readExistingXml ()
-	{
-		File folder = new File(xmlFolderPath);
-		File[] listOfImages = folder.listFiles();
 		
-		for(int i = 0; i < listOfImages.length; i++)
-		{
-			try 
-			{
-				queue.put(listOfImages[i].getPath().replace("\\", "/"));
-				log.write(true, "[SUCCESS] Network-NetworkServer; Found file in xml folder: \"" + 
-												listOfImages[i].getPath().replace("\\", "/") + "\""); 
-			} 
-			catch (InterruptedException e) 
-			{
-				log.write(false, "[ERROR] Network-NetworkServer; " + e.getMessage());
-			}
-		}
+		new ScanFolder(log, xmlFolderPath, queue).start();
 	}
 	
 	/**
