@@ -125,6 +125,8 @@ public class NetworkRasPiServerInputs extends Thread implements Runnable
 			EncodeDecodeXml newLecture = new EncodeDecodeXml(xmlFilePath, log);
 			newLecture.readCourseCode(); //TODO insert into schedule class
 			newLecture.readLectureTime(); //TODO insert into schedule class
+			log.print("Inserted new lecture into schema class");
+			log.write(true, "[Success] Network-NetworkRasPiServerInputs; Inserted new lecture into schema class");
 		} 
 		catch (InterruptedException e)
 		{
@@ -142,6 +144,8 @@ public class NetworkRasPiServerInputs extends Thread implements Runnable
 		if (senderProcess == null && currentTime.format(date).toString().contains("03")) //Change here if want to send configs att diffrent time
 		{
 			//Sending new RasPi configs to server
+			log.print("Sendning current config file to server, wont print done message in terminal");
+			log.write(true, "[Success] Network-NetworkRasPiServerInputs; Sending current config file");
 			senderProcess = new Thread(new NetworkSender(log, currentConfig, configSem));
 			senderProcess.start();
 		}
