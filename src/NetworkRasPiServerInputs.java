@@ -99,7 +99,7 @@ public class NetworkRasPiServerInputs extends Thread implements Runnable
 			currentConfig.addServerName(newConfig.readServerName());
 			currentConfig.addServerPassword(newConfig.readServerPassword());
 			log.print("Updated config file");
-			log.write(true, "[Success] Network-NetworkRasPiServerInputs; Updated config file");
+			log.write(true, "[SUCCESS] Network-NetworkRasPiServerInputs; Updated config file");
 			configSem.release();
 			
 			File newConfigFile = new File(xmlFilePath);
@@ -132,7 +132,7 @@ public class NetworkRasPiServerInputs extends Thread implements Runnable
 			newLecture.readCourseCode(); //TODO insert into schedule class
 			newLecture.readLectureTime(); //TODO insert into schedule class
 			log.print("Inserted new lecture into schema class");
-			log.write(true, "[Success] Network-NetworkRasPiServerInputs; Inserted new lecture into schema class");
+			log.write(true, "[SUCCESS] Network-NetworkRasPiServerInputs; Inserted new lecture into schema class");
 		} 
 		catch (InterruptedException e)
 		{
