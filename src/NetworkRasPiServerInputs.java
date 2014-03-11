@@ -52,7 +52,7 @@ public class NetworkRasPiServerInputs extends Thread implements Runnable
 			{
 				String filePath = queue.poll(10, TimeUnit.MINUTES); //timeout 10min
 				log.print("Found file in server input folder, File: " + filePath);
-				if (filePath.contains("server_settings.xml"))
+				if (filePath.contains("server_config.xml"))
 				{
 					updateConfig(filePath);
 				}
