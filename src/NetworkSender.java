@@ -51,6 +51,7 @@ public class NetworkSender extends Thread implements Runnable
 				String newFilePath = configReader.getXmlFileLocaton().split("\\.")[0] + "_" + configReader.readRasPiId() + ".xml";
 				File configFile = new File(configReader.getXmlFileLocaton());
 				File newNameConfig = new File(newFilePath);
+				newNameConfig.delete();
 				Files.copy(configFile.toPath(), newNameConfig.toPath());
 				configSem.release();
 				
