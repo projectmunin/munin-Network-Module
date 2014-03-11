@@ -21,9 +21,9 @@ public class NetworkSender extends Thread implements Runnable
 	private EncodeDecodeXml configReader;
 	private Semaphore configSem; 
 	
-	private final int maxTries = 100; 
-	private final int intervalBetweenTries = 10000; //10sec
-	private final int longSleep = 54000; //15 minutes
+	private final int maxTries = 5; 
+	private final int intervalBetweenTries = 5000; //5sec
+	private final int longSleep = 30000; //30sec //54000; //15 minutes
 
 
 	/**

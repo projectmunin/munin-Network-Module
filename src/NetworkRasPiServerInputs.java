@@ -60,6 +60,12 @@ public class NetworkRasPiServerInputs extends Thread implements Runnable
 				{
 					insertLecture(filePath);
 				}
+				else 
+				{
+					File strangeFile = new File(filePath);
+					strangeFile.delete();
+					log.write(false, "[WARNING] Network-NetworkRasPiServerInputs; Strange file was detected in serverInput folder");
+				}
 				
 			} 
 			catch (InterruptedException e) 
