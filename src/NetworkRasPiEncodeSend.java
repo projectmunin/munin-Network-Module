@@ -15,9 +15,6 @@ public class NetworkRasPiEncodeSend extends Thread implements Runnable
 	Log log;
 	SynchronousQueue<String> queue;
 	Semaphore configSem;
-	int maxTries = 100; 
-	int intervalBetweenTries = 10000; //10sec
-	int longSleep = 54000; //15 minutes
 	
 	/**
 	 * Contructor
@@ -56,9 +53,9 @@ public class NetworkRasPiEncodeSend extends Thread implements Runnable
 				String xmlFilePath = encodeXmlFile(imageFilePath, imageName);
 				log.print("Encoded xmlfile at: " + xmlFilePath);
 				
-//				log.print("Sending xmlfile:");
-//				sendFile(xmlFilePath);
-//				log.print("Sent xmlfile");
+				log.print("Sending xmlfile:");
+				new NetworkSender (log, configReader, configSem).sendFile(xmlFilePath);
+				log.print("Sent xmlfile");
 				
 //				deleteOldFiles(xmlFilePath, imageFilePath);
 //				log.print("Deleted old files");
@@ -92,45 +89,6 @@ public class NetworkRasPiEncodeSend extends Thread implements Runnable
 		xmlEditor.addLectureTime("????"); //TODO use timeedit class
 		xmlEditor.encodeImage(imageFilePath);
 		return xmlName;
-	}
-	
-	/**
-	 * Sends the input file to the server defined in the configfile. 
-	 * @param xmlFilePath xmlfile Location
-	 */
-	private void sendFile (String xmlFilePath)
-	{ 
-		try
-		{
-			configSem.acquire();
-			NetworkSender client = new NetworkSender(log, 
-													configReader.readServerIp(), 
-													configReader.readServerFolder(), 
-													configReader.readServerPassword(), 
-													configReader.readServerName());	
-			configSem.release();
-			
-			int tries;
-            for (tries = 0; !client.sendFile(xmlFilePath) && tries < maxTries; tries++)
-            {
-                sleep(intervalBetweenTries);
-            }
-			if (tries >= maxTries)
-			{
-				configSem.acquire();
-				log.write(false, "[ERROR] Network-NetworkRasPiEncodeSend; Tried " + tries + 
-										" times to send file: \"" + xmlFilePath + "\" To: " + 
-											configReader.readServerIp() + " Trying agian in " + 
-																	longSleep  + " milliseconds");
-				configSem.release();
-				sleep(longSleep);
-				sendFile (xmlFilePath);
-			} 
-		}
-		catch (InterruptedException e) 
-		{
-			log.write(false, "[ERROR] Network-NetworkRasPiEncodeSend; " + e.getMessage());
-		}
 	}
 	
 	/**

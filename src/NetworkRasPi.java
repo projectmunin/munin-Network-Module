@@ -21,14 +21,14 @@ public class NetworkRasPi
 		readInput(args);
 		
 		//Sets folder and Log class
-		Log log = new Log("D:/test/log/", debugMode);  //Log folder
-		String imageFolderPath = "D:/test/image/";
-		String xmlFolderPath = "D:/test/xml/";
-		String serverInputFolderPath = "D:/test/serverInputs";
+		Log log = new Log("/home/panda/test/log/", debugMode);  //Log folder
+		String imageFolderPath = "/home/panda/test/image/";
+		String xmlFolderPath = "/home/panda/test/xml/";
+		String serverInputFolderPath = "/home/panda/test/serverInputs/";
 		
 		//Loads configfile
 		EncodeDecodeXml configReader = new EncodeDecodeXml(log);
-		configReader.setXmlFileLocation("D:/test/config/config.xml"); // config file location
+		configReader.setXmlFileLocation("/home/panda/test/config/config.xml"); // config file location
 		
 		//Init SynchQueue
 		SynchronousQueue<String> queue = new SynchronousQueue<String>(true);

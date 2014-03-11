@@ -36,12 +36,23 @@ public class NetworkRasPiServerInputs extends Thread implements Runnable
 		
 		while (true)
 		{
+			//Checks if to start camera
 			checkIfToStartCamera();
+			
+			//Checks for new configs or lectures
 			try 
 			{
 				String filePath = queue.poll(10, TimeUnit.MINUTES); //timeout 10min
 				log.print("Found file in server input folder, File: " + filePath);
-				updateConfig (filePath); //TODO add schedule thing
+				if (filePath.contains("server_settings.xml"))
+				{
+					updateConfig(filePath);
+				}
+				if (filePath.contains("server_lecture.xml"))
+				{
+					insertLecture(filePath);
+				}
+				
 			} 
 			catch (InterruptedException e) 
 			{
@@ -49,6 +60,7 @@ public class NetworkRasPiServerInputs extends Thread implements Runnable
 			} 
 		}
 	}
+	
 	
 	//Private methods below
 	
@@ -72,7 +84,7 @@ public class NetworkRasPiServerInputs extends Thread implements Runnable
 			currentConfig.addServerIp(newConfig.readServerIp());
 			currentConfig.addServerName(newConfig.readServerName());
 			currentConfig.addServerPassword(newConfig.readServerPassword());
-			log.print("Update config file");
+			log.print("Updated config file");
 			log.write(true, "[Success] Network-NetworkRasPiServerInputs; Updated config file");
 			configSem.release();
 			
@@ -84,6 +96,49 @@ public class NetworkRasPiServerInputs extends Thread implements Runnable
 		{
 			log.write(false, "[ERROR] Network-NetworkRasPiServerInputs; " + e.getMessage());
 		}
+	}
+	
+	private void insertLecture (String xmlFilePath)
+	{
+		try 
+		{
+			while(!isCompletelyWritten(xmlFilePath))
+			{
+				sleep(intervalBetweenTries);
+			}
+		
+			EncodeDecodeXml newLecture = new EncodeDecodeXml(xmlFilePath, log);
+			newLecture.readCourseCode(); //TODO insert into schedule class
+			newLecture.readLectureTime(); //TODO insert into schedule class
+		} 
+		catch (InterruptedException e)
+		{
+			log.write(false, "[ERROR] Network-NetworkRasPiServerInputs; " + e.getMessage());
+		}
+	}
+	
+	/**
+	 * Checks if the camera controller should start or not
+	 */
+	private void checkIfToStartCamera ()
+	{
+		//Need timeedit to be working or have correct api!
+	}
+	
+	/**
+	 * Start the camera controller. Will try to start it until it succeeds.
+	 */
+	private void startCameraController ()
+	{
+		try
+		{
+			Process externProgram;
+			externProgram = Runtime.getRuntime().exec("ABC");
+		} 
+		catch (IOException e) 
+		{
+			log.write(false, "[ERROR] Network-NetworkRasPiServerInputs; " + e.getMessage());
+		} //TODO add cameraController startup command		
 	}
 	
 	/**
@@ -114,27 +169,4 @@ public class NetworkRasPiServerInputs extends Thread implements Runnable
 		}
 	}	
 	
-	/**
-	 * Checks if the camera controller should start or not
-	 */
-	private void checkIfToStartCamera ()
-	{
-		//Need timeedit to be working or have correct api!
-	}
-	
-	/**
-	 * Start the camera controller. Will try to start it until it succeeds.
-	 */
-	private void startCameraController ()
-	{
-		try
-		{
-			Process externProgram;
-			externProgram = Runtime.getRuntime().exec("ABC");
-		} 
-		catch (IOException e) 
-		{
-			log.write(false, "[ERROR] Network-NetworkRasPiServerInputs; " + e.getMessage());
-		} //TODO add cameraController startup command		
-	}
 }

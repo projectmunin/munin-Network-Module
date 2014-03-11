@@ -1,11 +1,12 @@
 import java.io.IOException;
+import java.util.concurrent.Semaphore;
 
 
 /**
 * Handles everything how a file will be sent to destination
 * @author P.Andersson
 */
-public class NetworkSender
+public class NetworkSender extends Thread
 {
 
 	//Private class variables
@@ -14,34 +15,64 @@ public class NetworkSender
 	private String serverFolder;
 	private String serverName;
 	private String linuxCommand;
-
 	
+	private EncodeDecodeXml configReader;
+	private Semaphore configSem; 
+	
+	private final int maxTries = 100; 
+	private final int intervalBetweenTries = 10000; //10sec
+	private final int longSleep = 54000; //15 minutes
+
+
 	/**
-	* Constructor, sets default values to private variables.
-	*/
-	public NetworkSender (Log log)
+	 * Contructor
+	 * @param log Which log file to write too
+	 * @param configReader Where to read configs
+	 * @param configSem The semaphore to be acquired before reading configs.
+	 */
+	public NetworkSender (Log log, EncodeDecodeXml configReader, Semaphore configSem)
 	{
 		this.log = log;
-		this.ip = "";
-		this.serverFolder = "";
-		this.serverName = "";
+		this.configReader = configReader;
+		this.configSem = configSem;
 	}
 	
 	/**
-	 * Constructor
-	 * @param log Which log file to write to
-	 * @param ip The ip address for the target server
-	 * @param serverFolder Where the file should be stored on the server
-	 * @param password The servers password
-	 * @param serverName The name of the server
+	 * Sends input file. Will try sending until it succeeds. 
+	 * @param filePath
 	 */
-	public NetworkSender (Log log, String ip, String serverFolder, String password, String serverName)
+	public void sendFile (String filePath)
 	{
-		this.log = log;
-		this.ip = ip;
-		this.serverFolder = serverFolder;
-		this.serverName = serverName;
-		this.linuxCommand = "sshpass -p " + password + " scp ";
+		try
+		{
+			configSem.acquire();
+			ip = configReader.readServerIp();
+			serverFolder = configReader.readServerFolder(); 
+			linuxCommand = "sshpass -p " + configReader.readServerPassword() + " scp ";
+			serverName = configReader.readServerName();	
+			configSem.release();
+			
+			int tries;
+            for (tries = 0; !trySendingFile(filePath) && tries < maxTries; tries++)
+            {
+                sleep(intervalBetweenTries);
+            }
+			if (tries >= maxTries)
+			{
+				configSem.acquire();
+				log.write(false, "[ERROR] Network-NetworkRasPiEncodeSend; Tried " + tries + 
+										" times to send file: \"" + filePath + "\" To: " + 
+											configReader.readServerIp() + " Trying agian in " + 
+																	longSleep  + " milliseconds");
+				configSem.release();
+				sleep(longSleep);
+				sendFile (filePath);
+			} 
+		}
+		catch (InterruptedException e) 
+		{
+			log.write(false, "[ERROR] Network-NetworkRasPiEncodeSend; " + e.getMessage());
+		}
 	}
 	
 	/**
@@ -49,7 +80,7 @@ public class NetworkSender
 	 * @param filePath The location of the file
 	 * @return returns true if the file was send successfully otherwise false
 	 */
-	public boolean sendFile (String filePath)
+	private boolean trySendingFile (String filePath)
 	{
 		try 
 		{
@@ -79,28 +110,6 @@ public class NetworkSender
 			log.write(false, "[ERROR] Network-NetworkClient; " + e.getMessage());
 			return false;
 		} 
-	}
-	
-
-	//Set methods
-	public void setIp (String inputIp)
-	{
-		this.ip = inputIp;
-	}
-	
-	public void setServerFolder (String serverFolder)
-	{
-		this.serverFolder = serverFolder;
-	}
-	
-	public void setPassword (String password)
-	{
-		this.linuxCommand = "sshpass -p " + password + " scp ";
-	}
-	
-	public void setServerName (String serverName)
-	{
-		this.serverName = serverName;
 	}
 }
 

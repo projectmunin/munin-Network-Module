@@ -37,9 +37,9 @@ public class NetworkServer
 		readInput(args);
 		
 		//Sets folder and Log class
-		log = new Log("D:/test/log/", debugMode);  //Log folder
-		xmlFolderPath = "D:/test/receviedXml/";
-		imageFileSavePath = "D:/test/savedImages/";
+		log = new Log("/home/panda/test/log/", debugMode);  //Log folder
+		xmlFolderPath = "/home/panda/test/receviedXml/";
+		imageFileSavePath = "/home/panda/test/savedImages/";
 		
 		//Init SynchQueue
 		queue = new SynchronousQueue<String>(true);
