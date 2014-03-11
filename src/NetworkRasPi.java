@@ -37,12 +37,13 @@ public class NetworkRasPi
 		Semaphore configSem = new Semaphore(1, true);
 		
 		//Starts threads and folder scanner
-		new Thread(new NetworkSender(log, configReader, configSem)).start(); //Only here to send RasPi configs to server at startup
+		Thread processConfigSender = new Thread(new NetworkSender(log, configReader, configSem)); //Only here to send RasPi configs to server at startup
+		processConfigSender.start();
 		log.print("Sendning current config file to server, wont print done message in terminal");
 		log.write(true, "[SUCCESS] Network-NetworkRas; Sending current config file");
 		
 		new Thread(new NetworkRasPiEncodeSend(log, xmlFolderPath, configReader, configSem, queue)).start();
-		new Thread(new NetworkRasPiServerInputs(log, serverInputFolderPath, configReader, configSem)).start();
+		new Thread(new NetworkRasPiServerInputs(log, serverInputFolderPath, configReader, configSem, processConfigSender)).start();
 
 		new ScanFolder(log, imageFolderPath, queue).start();
 	}

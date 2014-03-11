@@ -26,12 +26,13 @@ public class NetworkRasPiServerInputs extends Thread implements Runnable
 	
 	int intervalBetweenTries = 500; //0.5seconds
 	
-	public NetworkRasPiServerInputs (Log log, String folderPath, EncodeDecodeXml currentConfig, Semaphore configSem)
+	public NetworkRasPiServerInputs (Log log, String folderPath, EncodeDecodeXml currentConfig, Semaphore configSem, Thread senderProcess)
 	{
 		this.log = log;
 		this.currentConfig = currentConfig;
 		this.configSem = configSem;
 		this.folderPath = folderPath;
+		this.senderProcess = senderProcess;
 		queue = new SynchronousQueue<String>(true);
 	}
 	
@@ -106,8 +107,11 @@ public class NetworkRasPiServerInputs extends Thread implements Runnable
 			newConfigFile.delete();
 			
 			//Sending new RasPi configs to server
-			senderProcess = new Thread(new NetworkSender(log, currentConfig, configSem));
-			senderProcess.start();
+			if (senderProcess == null)
+			{
+				senderProcess = new Thread(new NetworkSender(log, currentConfig, configSem));
+				senderProcess.start();
+			}
 		} 
 		catch (InterruptedException e)
 		{
