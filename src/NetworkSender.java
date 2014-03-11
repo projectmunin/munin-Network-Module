@@ -39,7 +39,15 @@ public class NetworkSender extends Thread implements Runnable
 	
 	public void run ()
 	{
-		sendFile(configReader.getXmlFileLocaton());
+		if (configReader.getXmlFileLocaton().contains("config.xml"))
+		{
+			String newFileName = configReader.getXmlFileLocaton().split("\\.")[0] + configReader.readRasPiId() + ".xml";
+			sendFile(newFileName);
+		}
+		else
+		{
+			sendFile(configReader.getXmlFileLocaton());
+		}
 	}
 	
 	/**
