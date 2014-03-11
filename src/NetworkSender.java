@@ -1,4 +1,6 @@
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.concurrent.Semaphore;
 
 
@@ -39,10 +41,30 @@ public class NetworkSender extends Thread implements Runnable
 	
 	public void run ()
 	{
+		
 		if (configReader.getXmlFileLocaton().contains("config.xml"))
 		{
-			String newFileName = configReader.getXmlFileLocaton().split("\\.")[0] + configReader.readRasPiId() + ".xml";
-			sendFile(newFileName);
+			try 
+			{
+				//Creating new config with prober name to be sent to server. Will delete file when sent
+				configSem.acquire();
+				String newFilePath = configReader.getXmlFileLocaton().split("\\.")[0] + "_" + configReader.readRasPiId() + ".xml";
+				File configFile = new File(configReader.getXmlFileLocaton());
+				File newNameConfig = new File(newFilePath);
+				Files.copy(configFile.toPath(), newNameConfig.toPath());
+				configSem.release();
+				
+				sendFile(newFilePath);
+				newNameConfig.delete();
+			} 
+			catch (InterruptedException e) 
+			{
+				log.write(false, "[ERROR] Network-NetworkSender; " + e.getMessage());
+			} 
+			catch (IOException e) 
+			{
+				log.write(false, "[ERROR] Network-NetworkSender; " + e.getMessage());
+			}
 		}
 		else
 		{
@@ -73,7 +95,7 @@ public class NetworkSender extends Thread implements Runnable
 			if (tries >= maxTries)
 			{
 				configSem.acquire();
-				log.write(false, "[ERROR] Network-NetworkRasPiEncodeSend; Tried " + tries + 
+				log.write(false, "[ERROR] Network-NetworkSender; Tried " + tries + 
 										" times to send file: \"" + filePath + "\" To: " + 
 											configReader.readServerIp() + " Trying agian in " + 
 																	longSleep  + " milliseconds");
@@ -84,7 +106,7 @@ public class NetworkSender extends Thread implements Runnable
 		}
 		catch (InterruptedException e) 
 		{
-			log.write(false, "[ERROR] Network-NetworkRasPiEncodeSend; " + e.getMessage());
+			log.write(false, "[ERROR] Network-NetworkSender; " + e.getMessage());
 		}
 	}
 	
@@ -102,25 +124,25 @@ public class NetworkSender extends Thread implements Runnable
 					" " + serverName + "@" + ip + serverFolder);
 			if (externProgram.waitFor() == 0)
 			{
-				log.write(false, "[SUCCESS] Network-NetworkClient; Sent file: \"" + 
+				log.write(false, "[SUCCESS] Network-NetworkSender; Sent file: \"" + 
 							filePath + "\" To: " + serverName + "@" + ip + serverFolder);
 				return true;
 			}
 			else
 			{
-				log.write(false, "[ERROR] Network-NetworkClient; Could not send file: \"" + 
+				log.write(false, "[ERROR] Network-NetworkSender; Could not send file: \"" + 
 								filePath + "\" To: " + serverName + "@" + ip + serverFolder);
 				return false;
 			}
 		} 
 		catch (InterruptedException e) 
 		{
-			log.write(false, "[ERROR] Network-NetworkClient; " + e.getMessage());
+			log.write(false, "[ERROR] Network-NetworkSender; " + e.getMessage());
 			return false;
 		}
 		catch (IOException e) 
 		{
-			log.write(false, "[ERROR] Network-NetworkClient; " + e.getMessage());
+			log.write(false, "[ERROR] Network-NetworkSender; " + e.getMessage());
 			return false;
 		} 
 	}
