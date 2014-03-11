@@ -37,6 +37,7 @@ public class NetworkRasPi
 		Semaphore configSem = new Semaphore(1, true);
 		
 		//Starts threads and folder scanner
+		new Thread(new NetworkSender(log, configReader, configSem)).start(); //Only here to send RasPi configs to server at startup
 		new Thread(new NetworkRasPiEncodeSend(log, xmlFolderPath, configReader, configSem, queue)).start();
 		new Thread(new NetworkRasPiServerInputs(log, serverInputFolderPath, configReader, configSem)).start();
 

@@ -2,6 +2,9 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.TimeUnit;
@@ -19,6 +22,8 @@ public class NetworkRasPiServerInputs extends Thread implements Runnable
 	Semaphore configSem;
 	String folderPath;
 	SynchronousQueue<String> queue;
+	Thread senderProcess; //Only here so we dosen't create alots of threads sending configs to server
+	
 	int intervalBetweenTries = 500; //0.5seconds
 	
 	public NetworkRasPiServerInputs (Log log, String folderPath, EncodeDecodeXml currentConfig, Semaphore configSem)
@@ -38,6 +43,9 @@ public class NetworkRasPiServerInputs extends Thread implements Runnable
 		{
 			//Checks if to start camera
 			checkIfToStartCamera();
+			
+			//Checks if to send RasPi configs
+			checkIfToSendConfigs();
 			
 			//Checks for new configs or lectures
 			try 
@@ -91,6 +99,9 @@ public class NetworkRasPiServerInputs extends Thread implements Runnable
 			File newConfigFile = new File(xmlFilePath);
 			newConfigFile.delete();
 			
+			//Sending new RasPi configs to server
+			senderProcess = new Thread(new NetworkSender(log, currentConfig, configSem));
+			senderProcess.start();
 		} 
 		catch (InterruptedException e)
 		{
@@ -98,6 +109,10 @@ public class NetworkRasPiServerInputs extends Thread implements Runnable
 		}
 	}
 	
+	/**
+	 * Inserts lecture into schedule class
+	 * @param xmlFilePath The xmlfile with the new lecture
+	 */
 	private void insertLecture (String xmlFilePath)
 	{
 		try 
@@ -116,6 +131,22 @@ public class NetworkRasPiServerInputs extends Thread implements Runnable
 			log.write(false, "[ERROR] Network-NetworkRasPiServerInputs; " + e.getMessage());
 		}
 	}
+	
+	/**
+	 * Sends current configs to server at 3'a clock in the night
+	 */
+	private void checkIfToSendConfigs ()
+	{		
+		DateFormat currentTime = new SimpleDateFormat("HH:mm");
+		Date date = new Date();
+		if (senderProcess == null && currentTime.format(date).toString().contains("03")) //Change here if want to send configs att diffrent time
+		{
+			//Sending new RasPi configs to server
+			senderProcess = new Thread(new NetworkSender(log, currentConfig, configSem));
+			senderProcess.start();
+		}
+	}
+	
 	
 	/**
 	 * Checks if the camera controller should start or not

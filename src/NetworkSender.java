@@ -6,7 +6,7 @@ import java.util.concurrent.Semaphore;
 * Handles everything how a file will be sent to destination
 * @author P.Andersson
 */
-public class NetworkSender extends Thread
+public class NetworkSender extends Thread implements Runnable 
 {
 
 	//Private class variables
@@ -35,6 +35,11 @@ public class NetworkSender extends Thread
 		this.log = log;
 		this.configReader = configReader;
 		this.configSem = configSem;
+	}
+	
+	public void run ()
+	{
+		sendFile(configReader.getXmlFileLocaton());
 	}
 	
 	/**

@@ -1,14 +1,5 @@
-import java.io.File;
-import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.nio.file.FileSystems;
-import java.nio.file.Path;
-import java.nio.file.WatchEvent;
-import java.nio.file.WatchKey;
-import java.nio.file.WatchService;
 import java.util.concurrent.SynchronousQueue;
-import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
-import static java.nio.file.StandardWatchEventKinds.OVERFLOW;
+
 
 /**
  * Main program for Server. Scans a folder, if notice file sends it to one of the thread 
@@ -38,7 +29,7 @@ public class NetworkServer
 		
 		//Sets folder and Log class
 		log = new Log("/home/panda/test/log/", debugMode);  //Log folder
-		xmlFolderPath = "/home/panda/test/receviedXml/";
+		xmlFolderPath = "/home/panda/test/receivedXml/";
 		imageFileSavePath = "/home/panda/test/savedImages/";
 		
 		//Init SynchQueue

@@ -59,7 +59,7 @@ public class EncodeDecodeXml
 		this.log = logFile;
 	}
 	
-	public void setXmlFileLocation(String xmlFileLocation) 
+	public void setXmlFileLocation (String xmlFileLocation) 
 	{
 		if (xmlFileLocation == "" || xmlFileLocation == null)
 		{
@@ -67,6 +67,12 @@ public class EncodeDecodeXml
 		}
 		this.xmlFileLocation = xmlFileLocation;
 	}
+	
+	public String getXmlFileLocaton ()
+	{
+		return xmlFileLocation;
+	}
+	
 	/**
 	 * Creates new xmlfile and writes main body to xmlfile. If xmlfile already exits, 
 	 * deletes old and create new empty xmlfile. Also runs the setXmlFileLocation
