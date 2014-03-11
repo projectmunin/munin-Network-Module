@@ -107,7 +107,7 @@ public class NetworkRasPiServerInputs extends Thread implements Runnable
 			newConfigFile.delete();
 			
 			//Sending new RasPi configs to server
-			if (senderProcess == null)
+			if (!senderProcess.isAlive())
 			{
 				senderProcess = new Thread(new NetworkSender(log, currentConfig, configSem));
 				senderProcess.start();
@@ -151,7 +151,7 @@ public class NetworkRasPiServerInputs extends Thread implements Runnable
 	{		
 		DateFormat currentTime = new SimpleDateFormat("HH:mm");
 		Date date = new Date();
-		if (senderProcess == null && currentTime.format(date).toString().contains("03")) //Change here if want to send configs att diffrent time
+		if (!senderProcess.isAlive() && currentTime.format(date).toString().contains("03")) //Change here if want to send configs att diffrent time
 		{
 			//Sending new RasPi configs to server
 			log.print("Sendning current config file to server, wont print done message in terminal");
