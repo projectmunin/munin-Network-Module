@@ -2,6 +2,10 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -15,11 +19,17 @@ import java.util.concurrent.SynchronousQueue;
  */
 public class NetworkServerDecodeSave extends Thread implements Runnable 
 {
-	//Priate class variables
+	//Private class variables
 	Log log;
 	SynchronousQueue<String> queue;
 	String imageFileSavePath;
 	int intervalBetweenTries = 500; //0.5seconds
+	
+	//Database info
+	String user = "root";
+	String password = "060906"; //TODO rm
+	String URL = "//localhost/munin";
+	
 	
 	public NetworkServerDecodeSave (Log log, String imageFileSavePath, SynchronousQueue<String> queue)
 	{
@@ -42,10 +52,24 @@ public class NetworkServerDecodeSave extends Thread implements Runnable
 					sleep(intervalBetweenTries);
 				}
 				
-				log.print("Starting to decode xmlfile");
-				decodeXmlFile(xmlFilePath); //Should decode, save image at correct position and insert data in database.
-				log.print("Decoded image from xmlfile, saved image at correct " + 
-											"position and inserted data in database");
+				if (xmlFilePath.contains("config_") && xmlFilePath.contains(".xml"))
+				{
+					log.print("Starting to update raspi config in the database");
+					updateDataBaseRasPiConfig(xmlFilePath);
+					log.print("Done updating raspi config in the database");
+				}
+				else if (xmlFilePath.contains(".xml"))
+				{
+					log.print("Starting to decode xmlfile");
+					decodeXmlFile(xmlFilePath); //Should decode, save image at correct position and insert data in database.
+					log.print("Decoded image from xmlfile, saved image at correct " + 
+												"position and inserted data in database");
+				}
+				else
+				{
+					log.write(false, "[ERROR] Network-NetworkServerDecodeSave; Strange file was " +
+															"located in scan folder: " + xmlFilePath);
+				}
 				
 //				deleteOldFiles(xmlFilePath);
 //				log.print("Deleted old files");
@@ -84,6 +108,36 @@ public class NetworkServerDecodeSave extends Thread implements Runnable
 			//Insert data into database
 			//TODO insert into database maybe create a view/trigger that when you insert a new 
 			//lecture note. creates auto a new lecutre if needed and new course of not exesting or something like it 
+		}
+	}
+	
+	private void updateDataBaseRasPiConfig (String xmlFilePath)
+	{
+		try
+		{
+			Class.forName("com.mysql.jdbc.Driver");
+			Connection connect = DriverManager
+					.getConnection("jdbc:mysql:" + URL + "?user="+ user + "&password=" + password);
+			
+			Statement  statement = connect.createStatement();
+			EncodeDecodeXml xmlEditor = new EncodeDecodeXml(xmlFilePath, log);
+
+			int result = statement.executeUpdate("INSERT INTO camera_units(name, lecture_hall_name, ip_address, " +
+					"password) VALUES('" + xmlEditor.readRasPiId() + "', '" + xmlEditor.readLectureHall() + 
+					"', '" + xmlEditor.readRasPiIpAddress() + "', '" + xmlEditor.readRasPiPassword() +"')");
+			if (result == 1)
+			{
+				log.write(true, "[SUCCESS] Network-NetworkServerDecodeSave; Inserted updated " +
+										"or new config for Rasberry Pi: " + xmlEditor.readRasPiId());
+			}
+		}
+		catch (SQLException e)
+		{
+			log.write(false, "[ERROR] Network-NetworkServerDecodeSave; " + e.getMessage());
+		}
+		catch (ClassNotFoundException e) 
+		{
+			log.write(false, "[ERROR] Network-NetworkServerDecodeSave; " + e.getMessage());
 		}
 	}
 	
