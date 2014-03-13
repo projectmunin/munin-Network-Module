@@ -66,15 +66,25 @@ public class NetworkServerDecodeSave extends Thread implements Runnable
 	{
 		EncodeDecodeXml xmlEditor = new EncodeDecodeXml(xmlFilePath, log);
 		String imageName =  xmlFilePath.substring(xmlFilePath.lastIndexOf("/") + 1).split("\\.")[0] + ".png"; //Adds file name and image typ
-		
-		//Creates path and save image
 		String imageTime = imageName.split("\\_")[1];
-		String subPath = xmlEditor.readCourseCode() + "/" + getPeriod(imageTime) + "/" + imageTime.replace("-", "/") + "/";
-		xmlEditor.decodeImage(imageFileSavePath + subPath + imageName); 
+		String period = getPeriod(imageTime);
 		
-		//Insert data into database
-		//TODO insert into database maybe create a view/trigger that when you insert a new 
-		//lecture note. creates auto a new lecutre if needed and new course of not exesting or something like it 
+		if (period.equals(""))
+		{
+			log.write(false, "[ERROR] Network-NetworkServerDecodeSave; Invalid image. Image wasn't taken in a period");
+		}
+		else
+		{
+			//Creates path and save image
+			String subPath = xmlEditor.readCourseCode() + "/" + period + "/" + imageTime.replace("-", "/") + "/";
+			xmlEditor.decodeImage(imageFileSavePath + subPath + imageName); 
+			log.write(true, "[SUCCESS] Network-NetworkServerDecodeSave; Stored image at: " + 
+														imageFileSavePath + subPath + imageName);
+			
+			//Insert data into database
+			//TODO insert into database maybe create a view/trigger that when you insert a new 
+			//lecture note. creates auto a new lecutre if needed and new course of not exesting or something like it 
+		}
 	}
 	
 	/**
