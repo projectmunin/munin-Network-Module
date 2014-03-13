@@ -38,6 +38,8 @@ public class EncodeDecodeXml
 	private final String serverName = "serverName";
 	private final String serverFolder = "serverFolder";
 	private final String serverPassword = "serverPassword";
+	private final String rasPiIpAddress = "rasPiIpAddress";
+	private final String rasPiPassword = "rasPiPassword";
 	
 	/**
 	 * Constructor
@@ -150,6 +152,14 @@ public class EncodeDecodeXml
 	{
 		addOrUpdateStringInXml(password, serverPassword);
 	}
+	public void addRasPiIpAddress (String address) 
+	{
+		addOrUpdateStringInXml(address, rasPiIpAddress);
+	}
+	public void addRasPiPassword (String password) 
+	{
+		addOrUpdateStringInXml(password, rasPiPassword);
+	}
 	
 	
 	//Simple Read methods
@@ -188,6 +198,14 @@ public class EncodeDecodeXml
 	public String readServerPassword ()
 	{
 		return readDataWithinTag(serverPassword);
+	}
+	public String readRasPiIpAddress()
+	{
+		return readDataWithinTag(rasPiIpAddress);
+	}
+	public String readRasPiPassword()
+	{
+		return readDataWithinTag(rasPiPassword);
 	}
 	
 	/**
