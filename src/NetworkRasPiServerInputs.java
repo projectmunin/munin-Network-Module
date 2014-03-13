@@ -51,7 +51,7 @@ public class NetworkRasPiServerInputs extends Thread implements Runnable
 			//Checks for new configs or lectures
 			try 
 			{
-				String filePath = queue.poll(10, TimeUnit.MINUTES); //timeout 10min
+				String filePath = queue.poll(9, TimeUnit.MINUTES); //timeout 9min
 				log.print("Found file in server input folder, File: " + filePath);
 				if (filePath.contains("server_config.xml"))
 				{
@@ -151,7 +151,7 @@ public class NetworkRasPiServerInputs extends Thread implements Runnable
 	{		
 		DateFormat currentTime = new SimpleDateFormat("HH:mm");
 		Date date = new Date();
-		if (!senderProcess.isAlive() && currentTime.format(date).toString().contains("03")) //Change here if want to send configs att diffrent time
+		if (!senderProcess.isAlive() && currentTime.format(date).toString().contains("03:1")) //Change here if want to send configs att diffrent time
 		{
 			//Sending new RasPi configs to server
 			log.print("Sendning current config file to server, wont print done message in terminal");

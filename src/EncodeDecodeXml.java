@@ -275,14 +275,18 @@ public class EncodeDecodeXml
 	{
 		try 
 		{
+			//Reads string from xmlfile
 			String readData = readDataWithinTag("image");
 			if (readData == "error" || readData == "")
 			{
 				log.write(false, "[ERROR] Network-EncodeDecodeXml; Cant read image tag from file \"" + xmlFileLocation + "\"");
 				return;
 			}
-			byte[] decodedImage = DatatypeConverter.parseBase64Binary(readData);
+			//Creates paths
+			new File(outputFileLocation).getParentFile().mkdirs();
 			
+			//Decodes String to bytes
+			byte[] decodedImage = DatatypeConverter.parseBase64Binary(readData);
 			BufferedOutputStream outputStream =
 							new BufferedOutputStream(new FileOutputStream(outputFileLocation));
 			outputStream.write(decodedImage);

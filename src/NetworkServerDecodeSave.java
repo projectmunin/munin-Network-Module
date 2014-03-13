@@ -2,6 +2,9 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.concurrent.SynchronousQueue;
 
 /**
@@ -54,11 +57,24 @@ public class NetworkServerDecodeSave extends Thread implements Runnable
 		}
 	}
 	
+	/**
+	 * Decode incoming xmlfile. Stores the image at correct position and inserts 
+	 * relevant data into the database
+	 * @param xmlFilePath The incoming xmlfile to be decoded
+	 */
 	private void decodeXmlFile (String xmlFilePath)
 	{
 		EncodeDecodeXml xmlEditor = new EncodeDecodeXml(xmlFilePath, log);
-		String imageName =  xmlFilePath.substring(xmlFilePath.lastIndexOf("/") + 1).split("\\.")[0] + ".bmp"; //Adds file name and image typ
-		xmlEditor.decodeImage(imageFileSavePath + imageName); //TODO fix this use database and save at right folder
+		String imageName =  xmlFilePath.substring(xmlFilePath.lastIndexOf("/") + 1).split("\\.")[0] + ".png"; //Adds file name and image typ
+		
+		//Creates path and save image
+		String imageTime = imageName.split("\\_")[1];
+		String subPath = xmlEditor.readCourseCode() + "/" + getPeriod(imageTime) + "/" + imageTime.replace("-", "/") + "/";
+		xmlEditor.decodeImage(imageFileSavePath + subPath + imageName); 
+		
+		//Insert data into database
+		//TODO insert into database maybe create a view/trigger that when you insert a new 
+		//lecture note. creates auto a new lecutre if needed and new course of not exesting or something like it 
 	}
 	
 	/**
@@ -88,6 +104,38 @@ public class NetworkServerDecodeSave extends Thread implements Runnable
 			return false;
 		}
 	}	
+	
+	/**
+	 * Returns the period for the input image taken time. If period changes, you can see
+	 *  how is looks in this link:
+	 *		 https://www.student.chalmers.se/sp/academic_year_list
+	 * @param imageTime The time the image been taken. Inputs layout "yyyy-MM-dd"
+	 * @return What period the image was taken. Returns empty string if no period was found
+	 */
+	private String getPeriod (String imageTime)
+	{
+		int currentMonth = Integer.parseInt(imageTime.substring(5, 7));
+		int currentDay = Integer.parseInt(imageTime.substring(8, 10));
+		int currentYear = Integer.parseInt(imageTime.substring(2, 4));
+		
+		if (9 <= currentMonth && 10 >= currentMonth) //First period in a school year
+		{
+			return "HT" + currentYear + "-1";
+		}
+		else if (11 == currentMonth || 12 == currentMonth || (1 == currentMonth && currentDay <= 9)) //Second period
+		{
+			return "HT" + currentYear + "-2";
+		}
+		else if (1 <= currentMonth && (3 >= currentMonth && currentDay <= 15)) //Third period
+		{
+			return "VT" + currentYear + "-3";
+		}
+		else if (3 <= currentMonth && 6 >= currentMonth) //Fourth period
+		{
+			return "VT" + currentYear + "-4";
+		}
+		return "";
+	}
 	
 	/**
 	 * Deletes inputet files
