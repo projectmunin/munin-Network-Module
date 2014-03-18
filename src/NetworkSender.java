@@ -27,7 +27,7 @@ public class NetworkSender extends Thread implements Runnable
 
 
 	/**
-	 * Contructor
+	 * Constructor
 	 * @param log Which log file to write too
 	 * @param configReader Where to read configs
 	 * @param configSem The semaphore to be acquired before reading configs.
@@ -39,37 +39,43 @@ public class NetworkSender extends Thread implements Runnable
 		this.configSem = configSem;
 	}
 	
+	/**
+	 * Constructor
+	 * @param log Which log file to write too
+	 * @param configReader  Where to read configs
+	 */
+	public NetworkSender (Log log, String ip, String serverFolder, String serverName, String password)
+	{
+		this.log = log;
+		this.ip = ip;
+		this.serverFolder = serverFolder;
+		this.serverName = serverName;
+		this.linuxCommand = "sshpass -p " + password + " scp ";;
+	}
+	
 	public void run ()
 	{
-		
-		if (configReader.getXmlFileLocaton().contains("config.xml"))
+		try 
 		{
-			try 
-			{
-				//Creating new config with prober name to be sent to server. Will delete file when sent
-				configSem.acquire();
-				String newFilePath = configReader.getXmlFileLocaton().split("\\.")[0] + "_" + configReader.readRasPiId() + ".xml";
-				File configFile = new File(configReader.getXmlFileLocaton());
-				File newNameConfig = new File(newFilePath);
-				Files.copy(configFile.toPath(), newNameConfig.toPath());
-				configSem.release();
-				
-				sendFile(newFilePath);
-				newNameConfig.delete();
-			} 
-			catch (InterruptedException e) 
-			{
-				log.write(false, "[ERROR] Network-NetworkSender; " + e.getMessage());
-			} 
-			catch (IOException e) 
-			{
-				log.write(false, "[ERROR] Network-NetworkSender; " + e.getMessage());
-			}
-		}
-		else
+			//Creating new config with prober name to be sent to server. Will delete file when sent
+			configSem.acquire();				
+			EncodeDecodeXml newSendConfig = new EncodeDecodeXml(log);
+			String newFilePath = configReader.getXmlFileLocaton().split("\\.")[0] + "_" + configReader.readRasPiId() + ".xml";
+			newSendConfig.createNewXml(newFilePath, "config");
+			newSendConfig.addRasPiId(configReader.readRasPiId());
+			newSendConfig.addLectureHall(configReader.readLectureHall());
+			newSendConfig.addRasPiIpAddress("127.0.0.1"); //TODO get ip-address
+			newSendConfig.addRasPiPassword(configReader.readRasPiPassword());
+			configSem.release();
+			
+			sendFile(newFilePath);
+			File tmpConfig = new File(newFilePath);
+			tmpConfig.delete();
+		} 
+		catch (InterruptedException e) 
 		{
-			sendFile(configReader.getXmlFileLocaton());
-		}
+			log.write(false, "[ERROR] Network-NetworkSender; " + e.getMessage());
+		} 
 	}
 	
 	/**
@@ -115,7 +121,7 @@ public class NetworkSender extends Thread implements Runnable
 	 * @param filePath The location of the file
 	 * @return returns true if the file was send successfully otherwise false
 	 */
-	private boolean trySendingFile (String filePath)
+	public boolean trySendingFile (String filePath)
 	{
 		try 
 		{

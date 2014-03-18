@@ -8,7 +8,6 @@ import java.util.concurrent.SynchronousQueue;
  */
 public class NetworkRasPi
 {	
-	//Permanent configs
 	static Boolean debugMode;
 	
 	/**
@@ -38,12 +37,12 @@ public class NetworkRasPi
 		
 		//Starts threads and folder scanner
 		Thread processConfigSender = new Thread(new NetworkSender(log, configReader, configSem)); //Only here to send RasPi configs to server at startup
-		processConfigSender.start();
+		processConfigSender.start(); //TODO fix correct configfile to be sent
 		log.print("Sendning current config file to server, wont print done message in terminal");
 		log.write(true, "[SUCCESS] Network-NetworkRas; Sending current config file");
 		
 		new Thread(new NetworkRasPiEncodeSend(log, xmlFolderPath, configReader, configSem, queue)).start();
-		new Thread(new NetworkRasPiServerInputs(log, serverInputFolderPath, configReader, configSem, processConfigSender)).start();
+		new Thread(new NetworkRasPiServerInputs(log, serverInputFolderPath, xmlFolderPath, configReader, configSem, processConfigSender)).start();
 
 		new ScanFolder(log, imageFolderPath, queue).start();
 	}
