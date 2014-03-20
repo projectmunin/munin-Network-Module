@@ -59,10 +59,6 @@ public class NetworkRasPiServerInputs extends Thread implements Runnable
 					{
 						updateConfig(filePath);
 					}
-					if (filePath.contains("server_lecture.xml"))
-					{
-						insertLecture(filePath);
-					}
 					else 
 					{
 						File strangeFile = new File(filePath);
@@ -95,7 +91,7 @@ public class NetworkRasPiServerInputs extends Thread implements Runnable
 			}
 			
 			
-			log.print("Starting to update config file"); //TODO fix if some configs where sent from server
+			log.print("Starting to update config file");
 			EncodeDecodeXml newConfig = new EncodeDecodeXml(xmlFilePath, log);
 			configSem.acquire();
 			if (!newConfig.readLectureHall().equals(""))
@@ -124,34 +120,9 @@ public class NetworkRasPiServerInputs extends Thread implements Runnable
 			//Sending new RasPi configs to server
 			if (!senderProcess.isAlive())
 			{
-				//senderProcess = new Thread(new NetworkSender(log, currentConfig, configSem)); 
+				senderProcess = new Thread(new NetworkSender(log, currentConfig, configSem)); 
 				senderProcess.start();
 			}
-		} 
-		catch (InterruptedException e)
-		{
-			log.write(false, "[ERROR] Network-NetworkRasPiServerInputs; " + e.getMessage());
-		}
-	}
-	
-	/**
-	 * Inserts lecture into schedule class
-	 * @param xmlFilePath The xmlfile with the new lecture
-	 */
-	private void insertLecture (String xmlFilePath)
-	{
-		try 
-		{
-			while(!isCompletelyWritten(xmlFilePath))
-			{
-				sleep(intervalBetweenTries);
-			}
-		
-			EncodeDecodeXml newLecture = new EncodeDecodeXml(xmlFilePath, log);
-			newLecture.readCourseCode(); //TODO insert into schedule class
-			newLecture.readLectureTime(); //TODO insert into schedule class
-			log.print("Inserted new lecture into schema class");
-			log.write(true, "[SUCCESS] Network-NetworkRasPiServerInputs; Inserted new lecture into schema class");
 		} 
 		catch (InterruptedException e)
 		{

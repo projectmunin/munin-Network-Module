@@ -38,8 +38,6 @@ public class NetworkRasPi
 		//Starts threads and folder scanner
 		Thread processConfigSender = new Thread(new NetworkSender(log, configReader, configSem)); //Only here to send RasPi configs to server at startup
 		processConfigSender.start();
-		log.print("Sendning current config file to server, wont print done message in terminal");
-		log.write(true, "[SUCCESS] Network-NetworkRasPi; Sending current config file");
 		
 		new Thread(new NetworkRasPiEncodeSend(log, xmlFolderPath, configReader, configSem, queue)).start();
 		new Thread(new NetworkRasPiServerInputs(log, serverInputFolderPath, configReader, configSem, processConfigSender)).start();

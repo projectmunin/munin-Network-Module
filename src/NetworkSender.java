@@ -23,7 +23,7 @@ public class NetworkSender extends Thread implements Runnable
 	private final int maxTries = 5; 
 	private final int intervalBetweenTries = 5000; //5sec
 	private final int longSleep = 30000; //30sec //54000; //15 minutes
-	private final String ethernetName = "eth0";
+	private final String ethernetName = "wlan0";
 
 
 	/**
@@ -64,7 +64,7 @@ public class NetworkSender extends Thread implements Runnable
 		Boolean done = false;
 		while (!done)
 		{
-			log.print("Starting to create config file to be sent and send");
+			log.print("Starting to create config file to be sent and startes to send");
 			String newFilePath = createConfigToBeSent();
 			done = sendFileReturns(newFilePath);
 			new File(newFilePath).delete();
