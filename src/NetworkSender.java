@@ -23,6 +23,7 @@ public class NetworkSender extends Thread implements Runnable
 	private final int maxTries = 5; 
 	private final int intervalBetweenTries = 5000; //5sec
 	private final int longSleep = 30000; //30sec //54000; //15 minutes
+	private final String ethernetName = "eth0";
 
 
 	/**
@@ -86,8 +87,8 @@ public class NetworkSender extends Thread implements Runnable
 			newSendConfig.createNewXml(newFilePath, "config");
 			newSendConfig.addRasPiId(configReader.readRasPiId());
 			newSendConfig.addLectureHall(configReader.readLectureHall());
-			newSendConfig.addRasPiIpAddress("127.0.0.1"); //TODO get ip-address
-			newSendConfig.addRasPiPassword(configReader.readRasPiPassword());
+			//newSendConfig.addRasPiIpAddress("127.0.0.1"); //TODO get ip-address
+			newSendConfig.addRasPiPassword(new getCurrentIp().get(ethernetName));
 			configSem.release();
 			log.write(true, "[SUCCESS] NetworkSender; Config to be sent has been created");
 			return newFilePath;
