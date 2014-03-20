@@ -52,22 +52,24 @@ public class NetworkRasPiServerInputs extends Thread implements Runnable
 			try 
 			{
 				String filePath = queue.poll(9, TimeUnit.MINUTES); //timeout 9min
-				log.print("Found file in server input folder, File: " + filePath);
-				if (filePath.contains("server_config.xml"))
+				if (filePath != null)
 				{
-					updateConfig(filePath);
-				}
-				if (filePath.contains("server_lecture.xml"))
-				{
-					insertLecture(filePath);
-				}
-				else 
-				{
-					File strangeFile = new File(filePath);
-					strangeFile.delete();
-					log.write(false, "[WARNING] Network-NetworkRasPiServerInputs; Strange file was detected in serverInput folder");
-				}
-				
+					log.print("Found file in server input folder, File: " + filePath);
+					if (filePath.contains("server_config.xml"))
+					{
+						updateConfig(filePath);
+					}
+					if (filePath.contains("server_lecture.xml"))
+					{
+						insertLecture(filePath);
+					}
+					else 
+					{
+						File strangeFile = new File(filePath);
+						strangeFile.delete();
+						log.write(false, "[WARNING] Network-NetworkRasPiServerInputs; Strange file was detected in serverInput folder");
+					}
+				}				
 			} 
 			catch (InterruptedException e) 
 			{

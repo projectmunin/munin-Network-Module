@@ -168,7 +168,7 @@ public class NetworkServerDecodeSave extends Thread implements Runnable
 	
 	/**
 	 * Returns the period for the input image taken time. If period changes, you can see
-	 *  how is looks in this link:
+	 * how is looks in this link:
 	 *		 https://www.student.chalmers.se/sp/academic_year_list
 	 * @param imageTime The time the image been taken. Inputs layout "yyyy-MM-dd"
 	 * @return What period the image was taken. Returns empty string if no period was found
