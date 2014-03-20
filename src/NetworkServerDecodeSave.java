@@ -24,7 +24,7 @@ public class NetworkServerDecodeSave extends Thread implements Runnable
 	
 	//Database info
 	String user = "root";
-	String password = "060906"; //TODO rm
+	String password = "abc88"; //TODO rm
 	String URL = "//localhost/munin";
 	
 	

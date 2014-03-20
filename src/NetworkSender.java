@@ -61,12 +61,14 @@ public class NetworkSender extends Thread implements Runnable
 	public void run ()
 	{
 		Boolean done = false;
-		while (done)
+		while (!done)
 		{
+			log.print("Starting to create config file to be sent and send");
 			String newFilePath = createConfigToBeSent();
 			done = sendFileReturns(newFilePath);
 			new File(newFilePath).delete();
 		}
+		log.print("Config file sent");
 	}
 	
 	/**
@@ -87,6 +89,7 @@ public class NetworkSender extends Thread implements Runnable
 			newSendConfig.addRasPiIpAddress("127.0.0.1"); //TODO get ip-address
 			newSendConfig.addRasPiPassword(configReader.readRasPiPassword());
 			configSem.release();
+			log.write(true, "[SUCCESS] NetworkSender; Config to be sent has been created");
 			return newFilePath;
 		}
 		catch (InterruptedException e)

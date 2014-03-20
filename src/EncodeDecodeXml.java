@@ -98,7 +98,7 @@ public class EncodeDecodeXml
 		{
 			xmlFile.createNewFile();			
 			PrintWriter xmlFileWriter = new PrintWriter(xmlFileLocation);
-			xmlFileWriter.println("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<" + bodyName + ">\n</" + bodyName + ">");
+			xmlFileWriter.println("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\n<" + bodyName + ">\n\n</" + bodyName + ">");
 			xmlFileWriter.close();
 			log.write(true, "[SUCCESS] Network-EncodeDecodeXml; Created new xml at: " + xmlFileLocation);
 			return true;
