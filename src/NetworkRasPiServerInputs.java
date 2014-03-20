@@ -21,19 +21,17 @@ public class NetworkRasPiServerInputs extends Thread implements Runnable
 	EncodeDecodeXml currentConfig;
 	Semaphore configSem;
 	String folderPath;
-	String xmlTmpFolderPath;
 	SynchronousQueue<String> queue;
 	Thread senderProcess; //Only here so we dosen't create alots of threads sending configs to server
 	
 	int intervalBetweenTries = 500; //0.5seconds
 	
-	public NetworkRasPiServerInputs (Log log, String folderPath, String xmlTmpFolderPath, EncodeDecodeXml currentConfig, Semaphore configSem, Thread senderProcess)
+	public NetworkRasPiServerInputs (Log log, String folderPath, EncodeDecodeXml currentConfig, Semaphore configSem, Thread senderProcess)
 	{
 		this.log = log;
 		this.currentConfig = currentConfig;
 		this.configSem = configSem;
 		this.folderPath = folderPath;
-		this.xmlTmpFolderPath = xmlTmpFolderPath;
 		this.senderProcess = senderProcess;
 		queue = new SynchronousQueue<String>(true);
 	}
@@ -94,16 +92,29 @@ public class NetworkRasPiServerInputs extends Thread implements Runnable
 				sleep(intervalBetweenTries);
 			}
 			
-			configSem.acquire();
+			
 			log.print("Starting to update config file"); //TODO fix if some configs where sent from server
 			EncodeDecodeXml newConfig = new EncodeDecodeXml(xmlFilePath, log);
-			currentConfig.addLectureHall(newConfig.readLectureHall());
-			currentConfig.addServerIp(newConfig.readServerIp());
-			currentConfig.addServerName(newConfig.readServerName());
-			currentConfig.addServerPassword(newConfig.readServerPassword());
+			configSem.acquire();
+			if (!newConfig.readLectureHall().equals(""))
+			{
+				currentConfig.addLectureHall(newConfig.readLectureHall());
+			}
+			if (!newConfig.readServerIp().equals(""))
+			{
+				currentConfig.addServerIp(newConfig.readServerIp());
+			}
+			if (!newConfig.readServerName().equals(""))
+			{
+				currentConfig.addServerName(newConfig.readServerName());
+			}
+			if (!newConfig.readServerPassword().equals(""))
+			{
+				currentConfig.addServerPassword(newConfig.readServerPassword());
+			}
+			configSem.release();
 			log.print("Updated config file");
 			log.write(true, "[SUCCESS] Network-NetworkRasPiServerInputs; Updated config file");
-			configSem.release();
 			
 			File newConfigFile = new File(xmlFilePath);
 			newConfigFile.delete();
@@ -111,7 +122,7 @@ public class NetworkRasPiServerInputs extends Thread implements Runnable
 			//Sending new RasPi configs to server
 			if (!senderProcess.isAlive())
 			{
-				senderProcess = new Thread(new NetworkSender(log, currentConfig, configSem)); //TODO change which config file to send 
+				//senderProcess = new Thread(new NetworkSender(log, currentConfig, configSem)); 
 				senderProcess.start();
 			}
 		} 

@@ -57,8 +57,9 @@ public class NetworkRasPiEncodeSend extends Thread implements Runnable
 				new NetworkSender (log, configReader, configSem).sendFile(xmlFilePath);
 				log.print("Sent xmlfile");
 				
-//				deleteOldFiles(xmlFilePath, imageFilePath);
-//				log.print("Deleted old files");
+				new File(xmlFilePath).delete();
+				new File(imageFilePath).delete();
+				log.print("Deleted old files");
 			}			
 		}
 		catch (InterruptedException e) 
@@ -89,20 +90,5 @@ public class NetworkRasPiEncodeSend extends Thread implements Runnable
 		xmlEditor.addLectureTime("????"); //TODO use timeedit class
 		xmlEditor.encodeImage(imageFilePath);
 		return xmlName;
-	}
-	
-	/**
-	 * Deletes inputet files
-	 * @param xmlFilePath	Path for the xmlfile
-	 * @param imageFilePath Path for the imagefile
-	 */
-	private void deleteOldFiles (String xmlFilePath, String imageFilePath)
-	{
-		File imageFile = new File(imageFilePath);
-		imageFile.delete();
-		File xmlFile = new File(xmlFilePath);
-		xmlFile.delete();
-		log.write(true, "[SUCCESS] Network-NetworkRasPiEncodeSend; Deleted old image: \"" + 
-								imageFilePath + "\" and old xmlfile: \"" + xmlFilePath + "\""); 
 	}
 }

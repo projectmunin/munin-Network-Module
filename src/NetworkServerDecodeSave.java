@@ -6,9 +6,6 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.concurrent.SynchronousQueue;
 
 /**
@@ -71,8 +68,8 @@ public class NetworkServerDecodeSave extends Thread implements Runnable
 															"located in scan folder: " + xmlFilePath);
 				}
 				
-//				deleteOldFiles(xmlFilePath);
-//				log.print("Deleted old files");
+				new File(xmlFilePath).delete();
+				log.print("Deleted old files");
 			}			
 		}
 		catch (InterruptedException e) 
@@ -199,18 +196,5 @@ public class NetworkServerDecodeSave extends Thread implements Runnable
 			return "VT" + currentYear + "-4";
 		}
 		return "";
-	}
-	
-	/**
-	 * Deletes inputet files
-	 * @param xmlFilePath	Path for the xmlfile
-	 * @param imageFilePath Path for the imagefile
-	 */
-	private void deleteOldFiles (String xmlFilePath)
-	{
-		File xmlFile = new File(xmlFilePath);
-		xmlFile.delete();
-		log.write(true, "[SUCCESS] Network-NetworkServerDecodeSave; Deleted old xmlfile: \"" + 
-																			xmlFilePath + "\""); 
 	}
 }

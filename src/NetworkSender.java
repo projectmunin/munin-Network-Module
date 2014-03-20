@@ -1,6 +1,5 @@
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.util.concurrent.Semaphore;
 
 
@@ -40,9 +39,12 @@ public class NetworkSender extends Thread implements Runnable
 	}
 	
 	/**
-	 * Constructor
+	 * Constructor, use when you already know ip and other data
 	 * @param log Which log file to write too
-	 * @param configReader  Where to read configs
+	 * @param ip The target ip address
+	 * @param serverFolder Target folder
+	 * @param serverName The name of the target computer
+	 * @param password Password for the target computer
 	 */
 	public NetworkSender (Log log, String ip, String serverFolder, String serverName, String password)
 	{
@@ -53,12 +55,30 @@ public class NetworkSender extends Thread implements Runnable
 		this.linuxCommand = "sshpass -p " + password + " scp ";;
 	}
 	
+	/**
+	 * Creates and send a configfile that the server can read. 
+	 */
 	public void run ()
 	{
+		Boolean done = false;
+		while (done)
+		{
+			String newFilePath = createConfigToBeSent();
+			done = sendFileReturns(newFilePath);
+			new File(newFilePath).delete();
+		}
+	}
+	
+	/**
+	 * Creates the configfile that will be sent to server
+	 * @return The path for the new file
+	 */
+	private String createConfigToBeSent ()
+	{
+		//Creating new config with prober name to be sent to server. Will delete file when sent
 		try 
 		{
-			//Creating new config with prober name to be sent to server. Will delete file when sent
-			configSem.acquire();				
+			configSem.acquire();
 			EncodeDecodeXml newSendConfig = new EncodeDecodeXml(log);
 			String newFilePath = configReader.getXmlFileLocaton().split("\\.")[0] + "_" + configReader.readRasPiId() + ".xml";
 			newSendConfig.createNewXml(newFilePath, "config");
@@ -67,15 +87,56 @@ public class NetworkSender extends Thread implements Runnable
 			newSendConfig.addRasPiIpAddress("127.0.0.1"); //TODO get ip-address
 			newSendConfig.addRasPiPassword(configReader.readRasPiPassword());
 			configSem.release();
+			return newFilePath;
+		}
+		catch (InterruptedException e)
+		{
+			log.write(false, "[ERROR] Network-NetworkSender; " + e.getMessage());
+			return "";
+		}				
+
+	}
+	
+	/**
+	 * Same as sendFile but returns true when done and false if it did not 
+	 * succeed. Returns false after the long sleep
+	 * @param filePath
+	 * @return returns true if the file was send successfully otherwise false
+	 */
+	public boolean sendFileReturns (String filePath)
+	{
+		try
+		{
+			configSem.acquire();
+			ip = configReader.readServerIp();
+			serverFolder = configReader.readServerFolder(); 
+			linuxCommand = "sshpass -p " + configReader.readServerPassword() + " scp ";
+			serverName = configReader.readServerName();	
+			configSem.release();
 			
-			sendFile(newFilePath);
-			File tmpConfig = new File(newFilePath);
-			tmpConfig.delete();
-		} 
+			int tries;
+            for (tries = 0; !trySendingFile(filePath) && tries < maxTries; tries++)
+            {
+                sleep(intervalBetweenTries);
+            }
+			if (tries >= maxTries)
+			{
+				configSem.acquire();
+				log.write(false, "[ERROR] Network-NetworkSender; Tried " + tries + 
+										" times to send file: \"" + filePath + "\" To: " + 
+											configReader.readServerIp() + " Trying agian in " + 
+																	longSleep  + " milliseconds");
+				configSem.release();
+				sleep(longSleep);
+				return false;
+			} 
+			return true;
+		}
 		catch (InterruptedException e) 
 		{
 			log.write(false, "[ERROR] Network-NetworkSender; " + e.getMessage());
-		} 
+			return false;
+		}
 	}
 	
 	/**
@@ -107,7 +168,7 @@ public class NetworkSender extends Thread implements Runnable
 																	longSleep  + " milliseconds");
 				configSem.release();
 				sleep(longSleep);
-				sendFile (filePath);
+				sendFile(filePath);
 			} 
 		}
 		catch (InterruptedException e) 
@@ -115,7 +176,7 @@ public class NetworkSender extends Thread implements Runnable
 			log.write(false, "[ERROR] Network-NetworkSender; " + e.getMessage());
 		}
 	}
-	
+		
 	/**
 	 * Sends the input file to the target server with the already set configurations
 	 * @param filePath The location of the file
