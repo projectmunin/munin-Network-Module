@@ -1,6 +1,7 @@
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
+import java.util.Enumeration;
 
 
 /**
@@ -11,17 +12,23 @@ import java.io.InputStreamReader;
  */
 public class getCurrentIp 
 {
-	public String get ()
+	public String get (String ethernetName)
 	{
-		try
-		{
-			Process plsof = new ProcessBuilder(new String[]{"ifconfig", "|", "grep -Eo 'inet (addr:)?([0-9]*\\.){3}[0-9]*'", "|", "grep -Eo '([0-9]*\\.){3}[0-9]*'", "|", "grep -v '127.0.0.1'"}).start();
-			BufferedReader reader = new BufferedReader(new InputStreamReader(plsof.getInputStream()));
-			return reader.readLine();
-		} 
-		catch (IOException e) 
-		{
-			return "";
-		}
+			try {
+				NetworkInterface ni = NetworkInterface.getByName(ethernetName);
+		        Enumeration<InetAddress> inetAddresses =  ni.getInetAddresses();
+
+		        while(inetAddresses.hasMoreElements()) {
+		            InetAddress ia = inetAddresses.nextElement();
+		            if(!ia.isLinkLocalAddress()) {
+		                return ia.getHostAddress();
+		            }
+		        }
+		        return "";
+			} 
+			catch (SocketException e) 
+			{
+				return "";
+			}
 	}
 }
