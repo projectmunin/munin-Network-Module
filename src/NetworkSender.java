@@ -151,29 +151,37 @@ public class NetworkSender extends Thread implements Runnable
 	{
 		try
 		{
-			configSem.acquire();
-			ip = configReader.readServerIp();
-			serverFolder = configReader.readServerFolder(); 
-			linuxCommand = "sshpass -p " + configReader.readServerPassword() + " scp ";
-			serverName = configReader.readServerName();	
-			configSem.release();
-			
-			int tries;
-            for (tries = 0; !trySendingFile(filePath) && tries < maxTries; tries++)
-            {
-                sleep(intervalBetweenTries);
-            }
-			if (tries >= maxTries)
+			Boolean done = false;
+			while (done)
 			{
 				configSem.acquire();
-				log.write(false, "[ERROR] Network-NetworkSender; Tried " + tries + 
-										" times to send file: \"" + filePath + "\" To: " + 
-											configReader.readServerIp() + " Trying agian in " + 
-																	longSleep  + " milliseconds");
+				ip = configReader.readServerIp();
+				serverFolder = configReader.readServerFolder(); 
+				linuxCommand = "sshpass -p " + configReader.readServerPassword() + " scp ";
+				serverName = configReader.readServerName();	
 				configSem.release();
-				sleep(longSleep);
-				sendFile(filePath);
-			} 
+				
+				int tries;
+	            for (tries = 0; !trySendingFile(filePath) && tries < maxTries; tries++)
+	            {
+	                sleep(intervalBetweenTries);
+	            }
+				if (tries >= maxTries)
+				{
+					configSem.acquire();
+					log.write(false, "[ERROR] Network-NetworkSender; Tried " + tries + 
+											" times to send file: \"" + filePath + "\" To: " + 
+												configReader.readServerIp() + " Trying agian in " + 
+																		longSleep  + " milliseconds");
+					configSem.release();
+					sleep(longSleep);
+				} 
+				else 
+				{
+					done = true;
+				}
+			}
+
 		}
 		catch (InterruptedException e) 
 		{
