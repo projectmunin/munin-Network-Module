@@ -1,3 +1,6 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -10,10 +13,10 @@ public class NetworkServerSendConfigs
 	//Variables
 	static Boolean debugMode;
 	static Boolean dummyMode; //TODO rm 
-	static String rasPiId;
-	static String room;
-	static String serverPassword;
-	static String serverName;
+	static String rasPiId = "";
+	static String room = "";
+	static String serverPassword = "";
+	static String serverName = "";
 	
 	static String ethernetName = "etho";
 	
@@ -29,7 +32,14 @@ public class NetworkServerSendConfigs
 	{
 		//Reads arguments
 		readInput(args);
-		if (!dummyMode)
+		getName();
+//		System.out.println(rasPiId);
+//		System.out.println(room);
+//		System.out.println(serverPassword);
+//		System.out.println(serverName);
+//		System.exit(0);
+		
+		if (!dummyMode) //TODO rm
 		{
 			
 			//Sets folder and Log class
@@ -100,7 +110,6 @@ public class NetworkServerSendConfigs
 		}
 	}
 
-	//TODO fix arguments
 	/**
 	 * Reads the commands inputs in received array string
 	 * @param args The array that holds all the commands
@@ -123,17 +132,11 @@ public class NetworkServerSendConfigs
 			{
 				i++;
 				rasPiId = args[i];
-				System.out.println("derp");
 			}
 			else if (args[i].equals("-l") || args[i].equals("--lectureHall"))
 			{
 				i++;
 				room = args[i];
-			}
-			else if (args[i].equals("-n") || args[i].equals("--name"))
-			{
-				i++;
-				serverName = args[i];
 			}
 			else if (args[i].equals("-p") || args[i].equals("--password"))
 			{
@@ -150,7 +153,7 @@ public class NetworkServerSendConfigs
 				System.exit(2);
 			}
 			
-			if (rasPiId == null)
+			if (rasPiId == "")
 			{
 				System.out.println("ERROR: You must specified rasPi Id" );
 				System.exit(5);
@@ -161,16 +164,40 @@ public class NetworkServerSendConfigs
 	/**
 	 * Prints the help message and exits
 	 */
-	private static void printHelpMessage()
+	private static void printHelpMessage ()
 	{
 		System.out.println("###### NetworkRasPi Help message ######");
 		System.out.println(" -d OR --deubg                :Enables debug mode");
 		System.out.println(" -h OR --help                 :Displays this message\n");
 		System.out.println(" -r OR --rasPiId     'String' :The rasPiId. Must be specified");
 		System.out.println(" -l OR --lectureHall 'String  :The new lecture hall");
-		System.out.println(" -n OR --name        'String' :New server name");
 		System.out.println(" -p OR --password    'String' :New server password");
 		System.out.println(" -m OR --dummyMode            :Dummy mode wont send files only error numbers");
 		System.exit(0);
-	}	
+	}
+	
+	/**
+	 * Read the server/computer name and assign serverName to the result. Only works on linux
+	 */
+	private static void getName ()
+	{
+		try 
+		{
+			Process plsof = new ProcessBuilder(new String[]{"hostname"}).start();
+			BufferedReader reader = new BufferedReader(new InputStreamReader(plsof.getInputStream()));
+			serverName = reader.readLine();
+			if (serverName.equals(""))
+			{
+				plsof.destroy();
+				reader.close();
+				System.exit(6);
+			} 
+			plsof.destroy();
+			reader.close();
+		} 
+		catch (IOException e) 
+		{
+			System.exit(6);
+		}
+	}
 }
