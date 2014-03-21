@@ -135,16 +135,19 @@ public class NetworkServerSendConfigs
 			else if (args[i].equals("-r") || args[i].equals("--rasPiId"))
 			{
 				i++;
+				outOfBound(args, i);
 				rasPiId = args[i];
 			}
 			else if (args[i].equals("-l") || args[i].equals("--lectureHall"))
 			{
 				i++;
+				outOfBound(args, i);
 				room = args[i];
 			}
 			else if (args[i].equals("-p") || args[i].equals("--password"))
 			{
 				i++;
+				outOfBound(args, i);
 				serverPassword = args[i];
 			}
 			else
@@ -173,6 +176,19 @@ public class NetworkServerSendConfigs
 		System.out.println(" -l OR --lectureHall 'String  :The new lecture hall");
 		System.out.println(" -p OR --password    'String' :New server password");
 		System.exit(0);
+	}
+	
+	/**
+	 * Checks you pointer is out of bound
+	 * @param args The argrument String list
+	 * @param i The current pointer/currnet index
+	 */
+	private static void outOfBound (String [] args, int i)
+	{
+		if (i >= args.length)
+		{
+			System.exit(9);
+		}
 	}
 	
 	/**
