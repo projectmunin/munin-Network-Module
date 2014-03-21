@@ -152,7 +152,7 @@ public class NetworkSender extends Thread implements Runnable
 		try
 		{
 			Boolean done = false;
-			while (done)
+			while (!done)
 			{
 				configSem.acquire();
 				ip = configReader.readServerIp();

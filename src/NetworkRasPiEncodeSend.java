@@ -57,9 +57,9 @@ public class NetworkRasPiEncodeSend extends Thread implements Runnable
 				new NetworkSender (log, configReader, configSem).sendFile(xmlFilePath);
 				log.print("Sent xmlfile");
 				
-				new File(xmlFilePath).delete();
-				new File(imageFilePath).delete();
-				log.print("Deleted old files");
+				//new File(xmlFilePath).delete();
+				//new File(imageFilePath).delete();
+				//log.print("Deleted old files");
 			}			
 		}
 		catch (InterruptedException e) 
