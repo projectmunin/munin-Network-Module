@@ -169,7 +169,7 @@ public class NetworkServerSendConfigs
 	 */
 	private static void printHelpMessage ()
 	{
-		System.out.println("###### NetworkRasPi Help message ######");
+		System.out.println("###### NetworkServerSendConfigs Help message ######");
 		System.out.println(" -d OR --deubg                :Enables debug mode");
 		System.out.println(" -h OR --help                 :Displays this message\n");
 		System.out.println(" -r OR --rasPiId     'String' :The rasPiId. Must be specified");
