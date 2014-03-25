@@ -40,6 +40,7 @@ public class EncodeDecodeXml
 	private final String serverPassword = "serverPassword";
 	private final String rasPiIpAddress = "rasPiIpAddress";
 	private final String rasPiPassword = "rasPiPassword";
+	private final String lectureName = "lectureName";
 	
 	/**
 	 * Constructor
@@ -160,6 +161,10 @@ public class EncodeDecodeXml
 	{
 		addOrUpdateStringInXml(password, rasPiPassword);
 	}
+	public void addLectureName (String name) 
+	{
+		addOrUpdateStringInXml(name, lectureName);
+	}
 	
 	
 	//Simple Read methods
@@ -206,6 +211,10 @@ public class EncodeDecodeXml
 	public String readRasPiPassword()
 	{
 		return readDataWithinTag(rasPiPassword);
+	}
+	public String readLectureName()
+	{
+		return readDataWithinTag(lectureName);
 	}
 	
 	/**

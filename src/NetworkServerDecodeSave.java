@@ -7,6 +7,7 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Calendar;
 import java.util.concurrent.SynchronousQueue;
 
 /**
@@ -93,7 +94,8 @@ public class NetworkServerDecodeSave extends Thread implements Runnable
 		
 		if (period.equals(""))
 		{
-			log.write(false, "[ERROR] Network-NetworkServerDecodeSave; Invalid image. Image wasn't taken in a period");
+			log.write(false, "[ERROR] Network-NetworkServerDecodeSave; Invalid image. Image " +
+					"					wasn't taken in a period. Path to file: " + xmlFilePath);
 		}
 		else
 		{
@@ -103,12 +105,90 @@ public class NetworkServerDecodeSave extends Thread implements Runnable
 			log.write(true, "[SUCCESS] Network-NetworkServerDecodeSave; Stored image at: " + 
 														imageFileSavePath + subPath + imageName);
 			
-			//Insert data into database
-			//TODO insert into database maybe create a view/trigger that when you insert a new 
-			//lecture note. creates auto a new lecutre if needed and new course of not exesting or something like it 
+			try
+			{				
+				//Connects to database
+				Class.forName("com.mysql.jdbc.Driver");
+				Connection connect = DriverManager
+						.getConnection("jdbc:mysql:" + URL + "?user="+ user + "&password=" + password);
+				
+				Statement containsState = connect.createStatement();
+				ResultSet containResult;
+				
+				//Inserts new course if needed
+				containResult =  containsState.executeQuery("SELECT code FROM courses WHERE code='" + 
+																		xmlEditor.readCourseCode() + "'");
+				if (!containResult.next())
+				{
+					Statement insertStat = connect.createStatement();
+					insertStat.executeUpdate("INSERT INTO courses(name, period, code) " +
+												"VALUES('" + xmlEditor.readLectureName() + 
+												"', '" + period + "', '" + 
+												xmlEditor.readCourseCode() + "')");
+				}
+				
+				//Inserts new lecture hall if needed
+				containResult =  containsState.executeQuery("SELECT name FROM lecture_halls WHERE name='" + 
+																			xmlEditor.readCourseCode() + "'");
+				if (!containResult.next())
+				{
+					Statement insertStat = connect.createStatement();
+					insertStat.executeUpdate("INSERT INTO lecture_halls(name) " +
+												"VALUES('" +  xmlEditor.readLectureHall() + "')");
+				}
+				
+				//Inserts new lecture_note
+				Statement lectureNoteState =  connect.createStatement();
+				Statement lectureState = connect.createStatement();
+				Statement lectureGetState =  connect.createStatement();
+				ResultSet lectureResult = lectureGetState.executeQuery("SELECT id, startTime, endTime " +
+																	"FROM lectures " +
+																	"WHERE course_code='" + xmlEditor.readCourseCode() + "' " +
+																	"AND course_period='" + period + "' " +
+																	"AND lecture_hall_name='" + xmlEditor.readLectureHall() + "'");
+
+
+				Boolean lectureFound = false;
+				while (!lectureFound && lectureResult.next())
+				{
+					lectureFound = isLectureNoteInLecture(imageTime, lectureResult.getString(2), lectureResult.getString(3));
+				}
+				
+				if (lectureFound)
+				{
+					lectureNoteState.executeUpdate("INSERT INTO lecture_notes(id, lecture_id, " +
+													"camera_unit_name, processed, time, image) " +
+													"VALUES (null, '" + lectureResult.getString(1) + 
+													"', '" + imageName.split("\\_")[0] + "', 0, '" + 
+													imageTime + "', '" + imageFileSavePath + 
+													subPath + imageName + "')");
+				}
+				else
+				{
+					lectureState.execute("INSERT INTO lectures(id, course_code, course_period, " +
+											"lecture_hall_name, startTime, endTime, finished) " +
+											"VALUES (null, '" + xmlEditor.readCourseCode() + "', '" + 
+											period + "', '" + xmlEditor.readLectureHall() + 
+											"', '2012-06-06 10:00:00', '2012-06-06 11.45.00', 0)"); //TODO fix the time
+					//TODO make it add lecture note
+				}
+				
+			}
+			catch (SQLException e)
+			{
+				log.write(false, "[ERROR] Network-NetworkServerDecodeSave; " + e.getMessage());
+			}
+			catch (ClassNotFoundException e) 
+			{
+				log.write(false, "[ERROR] Network-NetworkServerDecodeSave; " + e.getMessage());
+			}
 		}
 	}
 	
+	/**
+	 * Updates the database with new Raspberry Pi configs
+	 * @param xmlFilePath The new Raspberry Pi xmlconfig file
+	 */
 	private void updateDataBaseRasPiConfig (String xmlFilePath)
 	{
 		try
@@ -126,18 +206,12 @@ public class NetworkServerDecodeSave extends Thread implements Runnable
 			
 			//Inserts new lecture hall if needed
 			containResult =  containsState.executeQuery("SELECT name FROM lecture_halls WHERE name='" + 
-																		xmlEditor.readLectureHall() + "'");
+																		xmlEditor.readCourseCode() + "'");
 			if (!containResult.next())
 			{
 				Statement insertStat = connect.createStatement();
-				int insertResult = insertStat.executeUpdate("INSERT INTO camera_units(name) " +
-																"VALUES('" +  xmlEditor.readLectureHall() + "')");
-				if (insertResult == 1)
-				{
-					log.write(true, "[SUCCESS] Network-NetworkServerDecodeSave; Inserted updated " +
-											"or new config for Rasberry Pi: " + xmlEditor.readRasPiId());
-				}
-
+				insertStat.executeUpdate("INSERT INTO lecture_halls(name) " +
+											"VALUES('" +  xmlEditor.readLectureHall() + "')");
 			}
 			
 			//Updates rasPi if exits otherwise insert new
@@ -154,8 +228,8 @@ public class NetworkServerDecodeSave extends Thread implements Runnable
 															"WHERE name='" + xmlEditor.readRasPiId() + "'");
 				if (updresult == 1)
 				{
-					log.write(true, "[SUCCESS] Network-NetworkServerDecodeSave; Inserted updated " +
-											"or new config for Rasberry Pi: " + xmlEditor.readRasPiId());
+					log.write(true, "[SUCCESS] Network-NetworkServerDecodeSave; Updated database with " +
+														"new Rasberry Pi for: " + xmlEditor.readRasPiId());
 				}
 			}
 			else
@@ -169,8 +243,8 @@ public class NetworkServerDecodeSave extends Thread implements Runnable
 																	xmlEditor.readRasPiPassword() +"')");
 				if (insertResult == 1)
 				{
-					log.write(true, "[SUCCESS] Network-NetworkServerDecodeSave; Inserted updated " +
-											"or new config for Rasberry Pi: " + xmlEditor.readRasPiId());
+					log.write(true, "[SUCCESS] Network-NetworkServerDecodeSave; Inserted new config " +
+									"for a Rasberry Pi in database with id: " + xmlEditor.readRasPiId());
 				}
 			}
 		}
@@ -182,6 +256,48 @@ public class NetworkServerDecodeSave extends Thread implements Runnable
 		{
 			log.write(false, "[ERROR] Network-NetworkServerDecodeSave; " + e.getMessage());
 		}
+	}
+	
+	/**
+	 * Checks if lecture note in a lecture
+	 * @param note The note time, Syntax "yyyy-mm-dd_HH-MM-ss" Doesn't matters if it's - or : 
+	 * between times or anything else. Only need to be any character between the times.
+	 * @param startTime The start time of the lecture, Syntax "yyyy-mm-dd HH:MM:ss"
+	 * @param endTime The end time of a lecture, Syntax "yyyy-mm-dd HH:MM:ss"
+	 * @return True if note is between start and endtime+14.99min 
+	 */
+	private boolean isLectureNoteInLecture(String note, String startTime, String endTime)
+	{
+		Calendar noteCalendar = Calendar.getInstance();
+		noteCalendar.set(Calendar.YEAR, Integer.parseInt(note.substring(0, 4)));
+		noteCalendar.set(Calendar.MONTH, Integer.parseInt(note.substring(5, 7)) - 1);
+		noteCalendar.set(Calendar.DATE, Integer.parseInt(note.substring(8, 10)));
+		noteCalendar.set(Calendar.HOUR_OF_DAY, Integer.parseInt(note.substring(11, 13)));
+		noteCalendar.set(Calendar.MINUTE, Integer.parseInt(note.substring(14, 16)));
+		noteCalendar.set(Calendar.SECOND, Integer.parseInt(note.substring(17, 19)));	
+		System.out.println(noteCalendar.getTime()); //TODO RM
+		
+		
+		Calendar startCalendar = Calendar.getInstance();
+		startCalendar.set(Calendar.YEAR, Integer.parseInt(startTime.substring(0, 4)));
+		startCalendar.set(Calendar.MONTH, Integer.parseInt(startTime.substring(5, 7)) - 1);
+		startCalendar.set(Calendar.DATE, Integer.parseInt(startTime.substring(8, 10)));
+		startCalendar.set(Calendar.HOUR_OF_DAY, Integer.parseInt(startTime.substring(11, 13)));
+		startCalendar.set(Calendar.MINUTE, Integer.parseInt(startTime.substring(14, 16)));
+		startCalendar.set(Calendar.SECOND, Integer.parseInt(startTime.substring(17, 19)) - 1);	//Extends start time with 1 second, because a note can be at exaxtly the start time
+		System.out.println(startCalendar.getTime()); //TODO RM	
+		
+		Calendar endCalendar = Calendar.getInstance();
+		endCalendar.set(Calendar.YEAR, Integer.parseInt(endTime.substring(0, 4)));
+		endCalendar.set(Calendar.MONTH, Integer.parseInt(endTime.substring(5, 7)) - 1);
+		endCalendar.set(Calendar.DATE, Integer.parseInt(endTime.substring(8, 10)));
+		endCalendar.set(Calendar.HOUR_OF_DAY, Integer.parseInt(endTime.substring(11, 13)));
+		endCalendar.set(Calendar.MINUTE, Integer.parseInt(endTime.substring(14, 16)) + 14); //Extends the end of lecture to 14.99min after lecture
+		endCalendar.set(Calendar.SECOND, Integer.parseInt(endTime.substring(17, 19)) + 59);	
+		System.out.println(endCalendar.getTime()); //TODO RM	
+
+		return (noteCalendar.after(startCalendar) && noteCalendar.before(endCalendar));
+		
 	}
 	
 	/**
