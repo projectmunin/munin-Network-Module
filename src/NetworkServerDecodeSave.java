@@ -115,30 +115,58 @@ public class NetworkServerDecodeSave extends Thread implements Runnable
 		{
 			EncodeDecodeXml xmlEditor = new EncodeDecodeXml(xmlFilePath, log);
 			
+			//Connects to database
 			Class.forName("com.mysql.jdbc.Driver");
 			Connection connect = DriverManager
 					.getConnection("jdbc:mysql:" + URL + "?user="+ user + "&password=" + password);
 			
 			
 			Statement containsState = connect.createStatement();
-			Statement updateState = connect.createStatement();
-			ResultSet containResult = containsState.executeQuery("SELECT name FROM camera_units WHERE name = '" + xmlEditor.readRasPiId() + "'");
+			ResultSet containResult;
+			
+			//Inserts new lecture hall if needed
+			containResult =  containsState.executeQuery("SELECT name FROM lecture_halls WHERE name='" + 
+																		xmlEditor.readLectureHall() + "'");
+			if (!containResult.next())
+			{
+				Statement insertStat = connect.createStatement();
+				int insertResult = insertStat.executeUpdate("INSERT INTO camera_units(name) " +
+																"VALUES('" +  xmlEditor.readLectureHall() + "')");
+				if (insertResult == 1)
+				{
+					log.write(true, "[SUCCESS] Network-NetworkServerDecodeSave; Inserted updated " +
+											"or new config for Rasberry Pi: " + xmlEditor.readRasPiId());
+				}
+
+			}
+			
 			//Updates rasPi if exits otherwise insert new
+			containResult = containsState.executeQuery("SELECT name FROM camera_units WHERE name='" +
+																		xmlEditor.readRasPiId() + "'");			
+			Statement updateState = connect.createStatement();
 			if (containResult.next())
 			{
+				//Updates camera_unit
 				int updresult = updateState.executeUpdate("UPDATE camera_units " +
 															"SET lecture_hall_name='" + xmlEditor.readLectureHall() + 
 															"', ip_address='" + xmlEditor.readRasPiIpAddress() + 
 															"', password='" + xmlEditor.readRasPiPassword() + "' " +
 															"WHERE name='" + xmlEditor.readRasPiId() + "'");
-				System.out.println(updresult);
+				if (updresult == 1)
+				{
+					log.write(true, "[SUCCESS] Network-NetworkServerDecodeSave; Inserted updated " +
+											"or new config for Rasberry Pi: " + xmlEditor.readRasPiId());
+				}
 			}
 			else
 			{
 				//Insert new camera_unit
-				int insertResult = updateState.executeUpdate("INSERT INTO camera_units(name, lecture_hall_name, ip_address, " +
-						"password) VALUES('" + xmlEditor.readRasPiId() + "', '" + xmlEditor.readLectureHall() + 
-						"', '" + xmlEditor.readRasPiIpAddress() + "', '" + xmlEditor.readRasPiPassword() +"')");
+				int insertResult = updateState.executeUpdate("INSERT INTO camera_units(name, lecture_hall_name, " +
+																						"ip_address, password) " +
+															"VALUES('" + xmlEditor.readRasPiId() + "', '" + 
+																	xmlEditor.readLectureHall() + "', '" + 
+																	xmlEditor.readRasPiIpAddress() + "', '" + 
+																	xmlEditor.readRasPiPassword() +"')");
 				if (insertResult == 1)
 				{
 					log.write(true, "[SUCCESS] Network-NetworkServerDecodeSave; Inserted updated " +
