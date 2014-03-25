@@ -87,8 +87,8 @@ public class NetworkSender extends Thread implements Runnable
 			newSendConfig.createNewXml(newFilePath, "config");
 			newSendConfig.addRasPiId(configReader.readRasPiId());
 			newSendConfig.addLectureHall(configReader.readLectureHall());
-			//newSendConfig.addRasPiIpAddress("127.0.0.1"); //TODO get ip-address
-			newSendConfig.addRasPiPassword(new getCurrentIp().get(ethernetName));
+			newSendConfig.addRasPiIpAddress(new getCurrentIp().get(ethernetName));
+			newSendConfig.addRasPiPassword("derpherp");
 			configSem.release();
 			log.write(true, "[SUCCESS] NetworkSender; Config to be sent has been created");
 			return newFilePath;
