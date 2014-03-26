@@ -4,8 +4,6 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.ResultSet;
-import java.util.Calendar;
-
 
 public class GiveJobsImage extends Thread
 {
@@ -47,6 +45,10 @@ public class GiveJobsImage extends Thread
 		}
 	}
 	
+	/**
+	 * Gives note jobs to image analysis program
+	 * @return True if found a job otherwise false
+	 */
 	private static boolean giveJob ()
 	{
 		try
@@ -55,62 +57,113 @@ public class GiveJobsImage extends Thread
 			Connection connect = DriverManager
 						.getConnection("jdbc:mysql:" + URL + "?user="+ user + "&password=" + password);
 				
-			Statement lectureStatement = connect.createStatement();
-			ResultSet lecture = lectureStatement.executeQuery("SELECT id, course_code, course_period, time " +
-				  												"FROM lectures " +
-				  												"WHERE finished = 0 " +
-				  												"ORDER BY time;");
+			//Gets all the current unprocessed notes 
+			Statement getUnStatement = connect.createStatement();
+			ResultSet unprocessedNotes = getUnStatement.executeQuery("SELECT id, lecture_id, image " +
+				  													"FROM lecture_notes " +
+				  													"WHERE processed = '0' " +
+				  													"ORDER BY time;");
 			//Starts to send jobs to analysis program
-			Boolean foundUnprocessedLectures = false;
+			Boolean foundUnprocessedNotes = false;
 			log.print("Starts to send jobs to analysis prog if their is any");
-			while (lecture.next())
+			while (unprocessedNotes.next())
 			{
-				if (compareTime(lecture.getString(4)))
+				//Get all previous notes for that lecture that have already been processed
+				
+				Statement getPrevStatement = connect.createStatement();
+				ResultSet previousNotes = getPrevStatement.executeQuery("SELECT image " +
+																		"FROM lecture_notes " +
+																		"WHERE lecture_id = '" + 
+																		unprocessedNotes.getString(2) + 
+																		"' AND id != '" + 
+																		unprocessedNotes.getString(1) +
+																		"' AND processed = '1'");
+				//Gets all the images to be sent to analysis program
+				String imagePaths = "";
+				while (previousNotes.next())
 				{
-					Statement noteStatement = connect.createStatement();;
-					ResultSet note = noteStatement.executeQuery("SELECT id, lecture_id, image " +
-															"FROM lecture_notes " +
-															"WHERE lecture_id = '" + lecture.getString(1) + "'");
-					
-					//Gets all the images to be sent to analysis program
-					String imagePaths = "";
-					while (note.next())
-					{
-						imagePaths = imagePaths + " " + note.getString(3);
-					}
-					log.print("Found files: " + imagePaths + " for lecture with id: " + lecture.getString(1));
-					
-					if (!imagePaths.equals(""))
-					{
-						Process externProgram;
-						externProgram = Runtime.getRuntime().exec(imageAnalysProgPath + " -i" + imagePaths);
-						
-						if (externProgram.waitFor() == 0)
-						{
-							log.write(true, "[SUCCESS] GiveJobsImage; The image analys program " +
-									"succeeded to analys lecture with id: " + lecture.getString(1));
-							Statement  updateStatement = connect.createStatement();
-
-							int result = updateStatement.executeUpdate("UPDATE lectures " +
-																		"SET finished=1 " +
-																		"WHERE id='" + lecture.getString(1) + "'");
-							if (result == 1)
-							{
-								log.write(true, "[SUCCESS] GiveJobsImage; Updated lecture with id: " 
-															+ lecture.getString(1) + " to finished");
-							}
-						}
-						else
-						{
-							log.write(false, "[ERROR] GiveJobsImage; Image analys encountered a " +
-									"problem analysing lecture with id: " + lecture.getString(1) + 
-									" analysis program returned error number: " + externProgram.exitValue());
-						}
-					}
-					foundUnprocessedLectures = true;
+					imagePaths = imagePaths + " " + previousNotes.getString(1);
 				}
+				getPrevStatement.close();
+				previousNotes.close();
+				log.print("Found processed files: " + imagePaths + " from lecture with id: " + 
+																unprocessedNotes.getString(2));
+				
+				//Start analysis program
+				if (!imagePaths.equals(""))
+				{
+					Process externProgram;
+					externProgram = Runtime.getRuntime().exec(imageAnalysProgPath + " -n" + 
+											unprocessedNotes.getString(3) + "-i" + imagePaths);
+					
+					//Updates the unprocessed note to processed
+					if (externProgram.waitFor() == 0)
+					{
+						log.print("The image analys program succeeded to analys image with id: " + 
+																	unprocessedNotes.getString(1));
+						log.write(true, "[SUCCESS] GiveJobsImage; The image analys program " +
+								"succeeded to analys image with id: " + unprocessedNotes.getString(1));
+						
+						Statement  updateStatement = connect.createStatement();
+						int result = updateStatement.executeUpdate("UPDATE lecture_notes " +
+																	"SET processed=1 " +
+																	"WHERE id='" + 
+																	unprocessedNotes.getString(1) + "'");
+						if (result == 1)
+						{
+							log.write(true, "[SUCCESS] GiveJobsImage; Updated note with id: " 
+													+ unprocessedNotes.getString(1) + " to processed");
+						}
+						updateStatement.close();
+						 
+					}
+					//Deletes the unprocessed note because of a match
+					else if (externProgram.exitValue() == 2)
+					{
+						log.print("The image analys program succeeded to analys image with id: " + 
+																	unprocessedNotes.getString(1));
+						log.write(true, "[SUCCESS] GiveJobsImage; The image analys program " +
+							"succeeded to analys image with id: " + unprocessedNotes.getString(1));
+						
+						Statement  updateStatement = connect.createStatement();
+						int result = updateStatement.executeUpdate("DELETE FROM lecture_notes " +
+																	"WHERE id='" + 
+																	unprocessedNotes.getString(1) + "'");
+						
+						if (result == 1)
+						{
+							log.write(true, "[SUCCESS] GiveJobsImage; Deleted note with id: " 
+																+ unprocessedNotes.getString(1));
+						}
+						updateStatement.close();
+					}
+					else
+					{
+						log.write(false, "[ERROR] GiveJobsImage; Image analys encountered a " +
+								"problem analysing note with id: " + unprocessedNotes.getString(1) + 
+								" analysis program returned error number: " + externProgram.exitValue());
+					}
+				}
+				//If first note, makes it processed
+				else
+				{
+					Statement  updateStatement = connect.createStatement();
+					int result = updateStatement.executeUpdate("UPDATE lecture_notes " +
+																"SET processed=1 " +
+																"WHERE id='" + 
+																unprocessedNotes.getString(1) + "'");
+					if (result == 1)
+					{
+						log.write(true, "[SUCCESS] GiveJobsImage; Updated note with id: " 
+												+ unprocessedNotes.getString(1) + " to processed");
+					}
+					updateStatement.close();
+				}
+				foundUnprocessedNotes = true;
 			}
-			return foundUnprocessedLectures;
+			getUnStatement.close();
+			unprocessedNotes.close();
+			return foundUnprocessedNotes;			
 		}
 		catch (SQLException e)
 		{
@@ -129,37 +182,6 @@ public class GiveJobsImage extends Thread
 			log.write(false, "[ERROR] GiveJobsImage; " + e.getMessage());
 		}
 		return false;
-	}
-
-	/**
-	 * Compares input time with current time + 1H
-	 * @param inputTime The input time. Syntax "2014-03-23 17:15:01"
-	 * @return True if current time is after input time (currentTime > inputTime), Otherwise false
-	 */
-	private static boolean compareTime (String inputTime)
-	{
-		int inputYear = Integer.parseInt(inputTime.substring(0, 4));
-		int inputMonth = Integer.parseInt(inputTime.substring(5, 7)) - 1;
-		int inputDay = Integer.parseInt(inputTime.substring(8, 10));
-		int inputHour = Integer.parseInt(inputTime.substring(11, 13));
-		int inputMin = Integer.parseInt(inputTime.substring(14, 16));
-		int inputSec = Integer.parseInt(inputTime.substring(17, 19));
-
-		Calendar lectureTime = Calendar.getInstance();
-		lectureTime.set(Calendar.YEAR, inputYear);
-		lectureTime.set(Calendar.MONTH, inputMonth);
-		lectureTime.set(Calendar.DATE, inputDay);
-		lectureTime.set(Calendar.HOUR_OF_DAY, inputHour);
-		lectureTime.set(Calendar.MINUTE, inputMin);
-		lectureTime.set(Calendar.SECOND, inputSec);	
-		
-		Calendar currentTimePlus1H = Calendar.getInstance();
-		currentTimePlus1H.add(Calendar.HOUR_OF_DAY, timeWaitBeforeAnalysingLectures);
-
-		log.write(true, "[SUCCESS] GiveJobsImage; Imagetime: " + lectureTime.getTime() + 
-									" CurrentTimePlus1H: " + currentTimePlus1H.getTime() + 
-									" return value: " + currentTimePlus1H.after(lectureTime));
-		return currentTimePlus1H.after(lectureTime);
 	}
 	
 	/**

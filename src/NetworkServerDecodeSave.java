@@ -329,53 +329,6 @@ public class NetworkServerDecodeSave extends Thread implements Runnable
 		}
 	}
 	
-//	/**
-//	 * Checks if lecture note in a lecture
-//	 * @param note The note time, Syntax "yyyy-mm-dd_HH-MM-ss" Doesn't matters if it's - or : 
-//	 * between times or anything else. Only need to be any character between the times.
-//	 * @param startTime The start time of the lecture, Syntax "yyyy-mm-dd HH:MM:ss"
-//	 * @param endTime The end time of a lecture, Syntax "yyyy-mm-dd HH:MM:ss"
-//	 * @return True if note is between start and endtime+14.99min 
-//	 */
-//	private boolean isLectureNoteInLecture(String note, String startTime, String endTime)
-//	{
-//		try
-//		{
-//			Calendar noteCalendar = Calendar.getInstance();
-//			noteCalendar.set(Calendar.YEAR, Integer.parseInt(note.substring(0, 4)));
-//			noteCalendar.set(Calendar.MONTH, Integer.parseInt(note.substring(5, 7)) - 1);
-//			noteCalendar.set(Calendar.DATE, Integer.parseInt(note.substring(8, 10)));
-//			noteCalendar.set(Calendar.HOUR_OF_DAY, Integer.parseInt(note.substring(11, 13)));
-//			noteCalendar.set(Calendar.MINUTE, Integer.parseInt(note.substring(14, 16)));
-//			noteCalendar.set(Calendar.SECOND, Integer.parseInt(note.substring(17, 19)));	
-//			
-//			
-//			Calendar startCalendar = Calendar.getInstance();
-//			startCalendar.set(Calendar.YEAR, Integer.parseInt(startTime.substring(0, 4)));
-//			startCalendar.set(Calendar.MONTH, Integer.parseInt(startTime.substring(5, 7)) - 1);
-//			startCalendar.set(Calendar.DATE, Integer.parseInt(startTime.substring(8, 10)));
-//			startCalendar.set(Calendar.HOUR_OF_DAY, Integer.parseInt(startTime.substring(11, 13)));
-//			startCalendar.set(Calendar.MINUTE, Integer.parseInt(startTime.substring(14, 16)));
-//			startCalendar.set(Calendar.SECOND, Integer.parseInt(startTime.substring(17, 19)) - 1);	//Extends start time with 1 second, because a note can be at exaxtly the start time
-//			
-//			
-//			Calendar endCalendar = Calendar.getInstance();
-//			endCalendar.set(Calendar.YEAR, Integer.parseInt(endTime.substring(0, 4)));
-//			endCalendar.set(Calendar.MONTH, Integer.parseInt(endTime.substring(5, 7)) - 1);
-//			endCalendar.set(Calendar.DATE, Integer.parseInt(endTime.substring(8, 10)));
-//			endCalendar.set(Calendar.HOUR_OF_DAY, Integer.parseInt(endTime.substring(11, 13)));
-//			endCalendar.set(Calendar.MINUTE, Integer.parseInt(endTime.substring(14, 16)) + 14); //Extends the end of lecture to 14.99min after lecture
-//			endCalendar.set(Calendar.SECOND, Integer.parseInt(endTime.substring(17, 19)) + 59);	
-//
-//			return (noteCalendar.after(startCalendar) && noteCalendar.before(endCalendar));
-//		}
-//		catch(NumberFormatException e)
-//		{
-//			log.write(false, "[ERROR] Network-NetworkServerDecodeSave; " + e.getMessage());
-//			return false;
-//		}
-//	}
-	
 	/**
 	 * Checks if a file has been completely written. Uses the linux program lsof. ONLY works for linux
 	 * @param file The file that will be checked if it has been written completely

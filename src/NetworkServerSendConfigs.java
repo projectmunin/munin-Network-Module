@@ -33,7 +33,7 @@ public class NetworkServerSendConfigs
 	/**
 	 * Runs the whole program.
 	 * Reads input -> reads database -> create file to be sent -> send file -> close
-	 * @param args Input argumetns
+	 * @param args Input arguments
 	 */
 	public static void main(String[] args) 
 	{
