@@ -88,7 +88,7 @@ public class NetworkRasPiEncodeSend extends Thread implements Runnable
 		xmlEditor.addCourseCode("ABC123"); //TODO use timeedit class
 		xmlEditor.addLectureName("DataBASER"); //TODO use timeedot class
 		xmlEditor.addTimeStamp(imageName.substring(0, 19)); //Change here if fileName for images changes!!!
-		xmlEditor.addLectureTime("????"); //TODO use timeedit class
+		xmlEditor.addLectureTime("2012-06-06 10:00:00;2012-06-06 11:45:00"); //TODO use timeedit class
 		xmlEditor.encodeImage(imageFilePath);
 		return xmlName;
 	}

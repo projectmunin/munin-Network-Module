@@ -7,6 +7,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Calendar;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.SynchronousQueue;
 
 /**
@@ -25,6 +26,8 @@ public class NetworkServerDecodeSave extends Thread implements Runnable
 	SynchronousQueue<String> queue;
 	String imageFileSavePath;
 	int intervalBetweenTries = 500; //0.5seconds
+	Semaphore databaseAccess;
+	
 	
 	//Database info
 	String user = "root";
@@ -32,11 +35,12 @@ public class NetworkServerDecodeSave extends Thread implements Runnable
 	String URL = "//localhost/munin";
 	
 	
-	public NetworkServerDecodeSave (Log log, String imageFileSavePath, SynchronousQueue<String> queue)
+	public NetworkServerDecodeSave (Log log, String imageFileSavePath, SynchronousQueue<String> queue, Semaphore databaseAccess)
 	{
 		this.log = log;
 		this.imageFileSavePath = imageFileSavePath;
 		this.queue = queue;
+		this.databaseAccess = databaseAccess;
 	}
 	
 	public void run ()
@@ -115,14 +119,18 @@ public class NetworkServerDecodeSave extends Thread implements Runnable
 				Connection connect = DriverManager
 						.getConnection("jdbc:mysql:" + URL + "?user="+ user + "&password=" + password);
 				
-				Statement containsState = connect.createStatement();
-				ResultSet containResult;
 				
+				////////////////////////////////////////////
+				//Different kinds of checks
+				////////////////////////////////////////////
 				
 				//Inserts new course if needed
-				containResult =  containsState.executeQuery("SELECT code FROM courses WHERE code='" + 
+				Statement containsState = connect.createStatement();
+				ResultSet containsResult =  containsState.executeQuery("SELECT code " +
+																		"FROM courses " +
+																		"WHERE code='" + 
 																		xmlEditor.readCourseCode() + "'");
-				if (!containResult.next())
+				if (!containsResult.next())
 				{
 					Statement insertStat = connect.createStatement();
 					insertStat.executeUpdate("INSERT INTO courses(name, period, code) " +
@@ -130,31 +138,48 @@ public class NetworkServerDecodeSave extends Thread implements Runnable
 												"', '" + period + "', '" + 
 												xmlEditor.readCourseCode() + "')");
 					insertStat.close();
-				}		
+				}	
 				
+				//Checks if camera_unit exits, if not wait. Database should always have the camera unit
+				Boolean hasCameraUnit = false;
+				while (!hasCameraUnit)
+				{
+					containsResult = containsState.executeQuery("SELECT name " +
+																"FROM camera_units " +
+																"WHERE name='" + 
+																xmlEditor.readRasPiId() + "'");
+					if (containsResult.next())
+					{
+						hasCameraUnit = true;
+					}
+					sleep(30000); //30sec
+				}
+				
+				containsState.close();
+				containsResult.close();
+				
+				
+				////////////////////////////////////////////
+				//Inserts incoming lecture note into database
+				////////////////////////////////////////////
 				
 				//Creates statement that will be used later
 				Statement lectureNoteState =  connect.createStatement();
 				Statement lectureGetState =  connect.createStatement();
+
 				
-				//Finds all lectures for a course with the correct lecture hall and period
+				//Gets matching lecture
+				databaseAccess.acquire();
 				ResultSet lectureResult = lectureGetState.executeQuery("SELECT id, startTime, endTime " +
-																	"FROM lectures " +
-																	"WHERE course_code='" + xmlEditor.readCourseCode() + "' " +
-																	"AND course_period='" + period + "' " +
-																	"AND lecture_hall_name='" + xmlEditor.readLectureHall() + "'");
-
-
-				Boolean lectureFound = false;
-				while (!lectureFound && lectureResult.next())
-				{
-					lectureFound = isLectureNoteInLecture(imageTimeWithSec, lectureResult.getString(2), lectureResult.getString(3));
-				}
+																		"FROM lectures " +
+																		"WHERE course_code='" + xmlEditor.readCourseCode() + "' " +
+																		"AND course_period='" + period + "' " +
+																		"AND startTime='" + xmlEditor.readLectureTime().split("\\;")[0] + "'");
 				
-				if (lectureFound)
+				if (lectureResult.next())
 				{
 					//Creates new lecture note
-					System.out.println("found"); //TODO rm
+					databaseAccess.release();
 					lectureNoteState.executeUpdate("INSERT INTO lecture_notes(id, lecture_id, " +
 													"camera_unit_name, processed, time, image) " +
 													"VALUES (null, '" + lectureResult.getString(1) + 
@@ -164,18 +189,20 @@ public class NetworkServerDecodeSave extends Thread implements Runnable
 					log.print("Found lecture, inserting new lecture note to that lecture");
 					log.write(true, "[SUCCESS] Network-NetworkServerDecodeSave; Inserted new " +
 							"lecture note into lecture with id: " + lectureResult.getString(1));
-					lectureNoteState.close();
-					lectureResult.close();
+					
 				}
 				else
 				{
 					//Creating new lecture
 					Statement lectureState = connect.createStatement();
-					lectureState.execute("INSERT INTO lectures(id, course_code, course_period, " +
+					lectureState.executeUpdate("INSERT INTO lectures(id, course_code, course_period, " +
 											"lecture_hall_name, startTime, endTime, finished) " +
 											"VALUES (null, '" + xmlEditor.readCourseCode() + "', '" + 
 											period + "', '" + xmlEditor.readLectureHall() + 
-											"', '2012-06-06 10:00:00', '2012-06-06 11.45.00', 0)"); //TODO fix the time
+											"', '" + xmlEditor.readLectureTime().split("\\;")[0] + 
+											"', '" + xmlEditor.readLectureTime().split("\\;")[1] + 
+											"', 0)");
+					databaseAccess.release();
 					
 					//Finding the lecture that was just created. Need to know what id it got.
 					lectureGetState = connect.createStatement();
@@ -183,9 +210,9 @@ public class NetworkServerDecodeSave extends Thread implements Runnable
 																	"FROM lectures " +
 																	"WHERE course_code='" + xmlEditor.readCourseCode() 
 																	+ "' " + "AND course_period='" + period + "' " +
-																	"AND startTime='2012-06-06 10:00:00'"); //TODO fix the time
+																	"AND startTime='" + xmlEditor.readLectureTime().split("\\;")[0] + "'");
 					
-					//Creates new lecture note
+					//Creates new lecture note and insert it with the newly created lecture
 					lectureResult.next();
 					lectureNoteState.executeUpdate("INSERT INTO lecture_notes(id, lecture_id, " +
 													"camera_unit_name, processed, time, image) " +
@@ -199,11 +226,11 @@ public class NetworkServerDecodeSave extends Thread implements Runnable
 					log.write(true, "[SUCCESS] Network-NetworkServerDecodeSave; Created new " +
 											"lecture with id: " + lectureResult.getString(1) + 
 											" and inserted a lecture not into it");
-					lectureState.close();
-					lectureGetState.close();
-					lectureResult.close();
-					lectureNoteState.close();
+					lectureState.close();					
 				}
+				lectureNoteState.close();
+				lectureResult.close();
+				lectureGetState.close();
 				
 			}
 			catch (SQLException e)
@@ -211,6 +238,10 @@ public class NetworkServerDecodeSave extends Thread implements Runnable
 				log.write(false, "[ERROR] Network-NetworkServerDecodeSave; " + e.getMessage());
 			}
 			catch (ClassNotFoundException e) 
+			{
+				log.write(false, "[ERROR] Network-NetworkServerDecodeSave; " + e.getMessage());
+			} 
+			catch (InterruptedException e) 
 			{
 				log.write(false, "[ERROR] Network-NetworkServerDecodeSave; " + e.getMessage());
 			}
@@ -234,29 +265,28 @@ public class NetworkServerDecodeSave extends Thread implements Runnable
 			
 			
 			Statement containsState = connect.createStatement();
-			ResultSet containResult;
+			ResultSet containsResult;
 			
 			//Inserts new lecture hall if needed
-			containResult =  containsState.executeQuery("SELECT name FROM lecture_halls WHERE name='" + 
+			containsResult =  containsState.executeQuery("SELECT name FROM lecture_halls WHERE name='" + 
 																		xmlEditor.readLectureHall() + "'");
-			System.out.println("check");
-			if (!containResult.next())
+			if (!containsResult.next())
 			{
 				System.out.println("found");
-				System.out.println(containResult.getString(1) + " found string");
-				Statement insertStat = connect.createStatement();
-				insertStat.executeUpdate("INSERT INTO lecture_halls(name) " +
+				System.out.println(containsResult.getString(1) + " found string");
+				Statement insertState = connect.createStatement();
+				insertState.executeUpdate("INSERT INTO lecture_halls(name) " +
 											"VALUES('" +  xmlEditor.readLectureHall() + "')");
+				insertState.close();
 			}
 			
 			//Finds a camera unit with the correct name
-			containResult = containsState.executeQuery("SELECT name FROM camera_units WHERE name='" +
+			containsResult = containsState.executeQuery("SELECT name FROM camera_units WHERE name='" +
 																		xmlEditor.readRasPiId() + "'");			
 			Statement updateState = connect.createStatement();
-			if (containResult.next())
+			if (containsResult.next())
 			{
 				//Updates camera_unit
-				System.out.println("upt");
 				int updresult = updateState.executeUpdate("UPDATE camera_units " +
 															"SET lecture_hall_name='" + xmlEditor.readLectureHall() + 
 															"', ip_address='" + xmlEditor.readRasPiIpAddress() + 
@@ -264,14 +294,14 @@ public class NetworkServerDecodeSave extends Thread implements Runnable
 															"WHERE name='" + xmlEditor.readRasPiId() + "'");
 				if (updresult == 1)
 				{
+					log.print("Updated database with new configs for: " + xmlEditor.readRasPiId());
 					log.write(true, "[SUCCESS] Network-NetworkServerDecodeSave; Updated database with " +
-														"new Rasberry Pi for: " + xmlEditor.readRasPiId());
+														"new configs for: " + xmlEditor.readRasPiId());
 				}
 			}
 			else
 			{
 				//Insert new camera_unit
-				System.out.println("ins");
 				int insertResult = updateState.executeUpdate("INSERT INTO camera_units(name, lecture_hall_name, " +
 																						"ip_address, password) " +
 															"VALUES('" + xmlEditor.readRasPiId() + "', '" + 
@@ -280,10 +310,14 @@ public class NetworkServerDecodeSave extends Thread implements Runnable
 																	xmlEditor.readRasPiPassword() +"')");
 				if (insertResult == 1)
 				{
+					log.print("Inserted a new camera unit into database with id: " + xmlEditor.readRasPiId());
 					log.write(true, "[SUCCESS] Network-NetworkServerDecodeSave; Inserted new config " +
 									"for a Rasberry Pi in database with id: " + xmlEditor.readRasPiId());
 				}
 			}
+			updateState.close();
+			containsState.close();
+			containsResult.close();
 		}
 		catch (SQLException e)
 		{
@@ -295,52 +329,52 @@ public class NetworkServerDecodeSave extends Thread implements Runnable
 		}
 	}
 	
-	/**
-	 * Checks if lecture note in a lecture
-	 * @param note The note time, Syntax "yyyy-mm-dd_HH-MM-ss" Doesn't matters if it's - or : 
-	 * between times or anything else. Only need to be any character between the times.
-	 * @param startTime The start time of the lecture, Syntax "yyyy-mm-dd HH:MM:ss"
-	 * @param endTime The end time of a lecture, Syntax "yyyy-mm-dd HH:MM:ss"
-	 * @return True if note is between start and endtime+14.99min 
-	 */
-	private boolean isLectureNoteInLecture(String note, String startTime, String endTime)
-	{
-		try
-		{
-			Calendar noteCalendar = Calendar.getInstance();
-			noteCalendar.set(Calendar.YEAR, Integer.parseInt(note.substring(0, 4)));
-			noteCalendar.set(Calendar.MONTH, Integer.parseInt(note.substring(5, 7)) - 1);
-			noteCalendar.set(Calendar.DATE, Integer.parseInt(note.substring(8, 10)));
-			noteCalendar.set(Calendar.HOUR_OF_DAY, Integer.parseInt(note.substring(11, 13)));
-			noteCalendar.set(Calendar.MINUTE, Integer.parseInt(note.substring(14, 16)));
-			noteCalendar.set(Calendar.SECOND, Integer.parseInt(note.substring(17, 19)));	
-			
-			
-			Calendar startCalendar = Calendar.getInstance();
-			startCalendar.set(Calendar.YEAR, Integer.parseInt(startTime.substring(0, 4)));
-			startCalendar.set(Calendar.MONTH, Integer.parseInt(startTime.substring(5, 7)) - 1);
-			startCalendar.set(Calendar.DATE, Integer.parseInt(startTime.substring(8, 10)));
-			startCalendar.set(Calendar.HOUR_OF_DAY, Integer.parseInt(startTime.substring(11, 13)));
-			startCalendar.set(Calendar.MINUTE, Integer.parseInt(startTime.substring(14, 16)));
-			startCalendar.set(Calendar.SECOND, Integer.parseInt(startTime.substring(17, 19)) - 1);	//Extends start time with 1 second, because a note can be at exaxtly the start time
-			
-			
-			Calendar endCalendar = Calendar.getInstance();
-			endCalendar.set(Calendar.YEAR, Integer.parseInt(endTime.substring(0, 4)));
-			endCalendar.set(Calendar.MONTH, Integer.parseInt(endTime.substring(5, 7)) - 1);
-			endCalendar.set(Calendar.DATE, Integer.parseInt(endTime.substring(8, 10)));
-			endCalendar.set(Calendar.HOUR_OF_DAY, Integer.parseInt(endTime.substring(11, 13)));
-			endCalendar.set(Calendar.MINUTE, Integer.parseInt(endTime.substring(14, 16)) + 14); //Extends the end of lecture to 14.99min after lecture
-			endCalendar.set(Calendar.SECOND, Integer.parseInt(endTime.substring(17, 19)) + 59);	
-
-			return (noteCalendar.after(startCalendar) && noteCalendar.before(endCalendar));
-		}
-		catch(NumberFormatException e)
-		{
-			log.write(false, "[ERROR] Network-NetworkServerDecodeSave; " + e.getMessage());
-			return false;
-		}
-	}
+//	/**
+//	 * Checks if lecture note in a lecture
+//	 * @param note The note time, Syntax "yyyy-mm-dd_HH-MM-ss" Doesn't matters if it's - or : 
+//	 * between times or anything else. Only need to be any character between the times.
+//	 * @param startTime The start time of the lecture, Syntax "yyyy-mm-dd HH:MM:ss"
+//	 * @param endTime The end time of a lecture, Syntax "yyyy-mm-dd HH:MM:ss"
+//	 * @return True if note is between start and endtime+14.99min 
+//	 */
+//	private boolean isLectureNoteInLecture(String note, String startTime, String endTime)
+//	{
+//		try
+//		{
+//			Calendar noteCalendar = Calendar.getInstance();
+//			noteCalendar.set(Calendar.YEAR, Integer.parseInt(note.substring(0, 4)));
+//			noteCalendar.set(Calendar.MONTH, Integer.parseInt(note.substring(5, 7)) - 1);
+//			noteCalendar.set(Calendar.DATE, Integer.parseInt(note.substring(8, 10)));
+//			noteCalendar.set(Calendar.HOUR_OF_DAY, Integer.parseInt(note.substring(11, 13)));
+//			noteCalendar.set(Calendar.MINUTE, Integer.parseInt(note.substring(14, 16)));
+//			noteCalendar.set(Calendar.SECOND, Integer.parseInt(note.substring(17, 19)));	
+//			
+//			
+//			Calendar startCalendar = Calendar.getInstance();
+//			startCalendar.set(Calendar.YEAR, Integer.parseInt(startTime.substring(0, 4)));
+//			startCalendar.set(Calendar.MONTH, Integer.parseInt(startTime.substring(5, 7)) - 1);
+//			startCalendar.set(Calendar.DATE, Integer.parseInt(startTime.substring(8, 10)));
+//			startCalendar.set(Calendar.HOUR_OF_DAY, Integer.parseInt(startTime.substring(11, 13)));
+//			startCalendar.set(Calendar.MINUTE, Integer.parseInt(startTime.substring(14, 16)));
+//			startCalendar.set(Calendar.SECOND, Integer.parseInt(startTime.substring(17, 19)) - 1);	//Extends start time with 1 second, because a note can be at exaxtly the start time
+//			
+//			
+//			Calendar endCalendar = Calendar.getInstance();
+//			endCalendar.set(Calendar.YEAR, Integer.parseInt(endTime.substring(0, 4)));
+//			endCalendar.set(Calendar.MONTH, Integer.parseInt(endTime.substring(5, 7)) - 1);
+//			endCalendar.set(Calendar.DATE, Integer.parseInt(endTime.substring(8, 10)));
+//			endCalendar.set(Calendar.HOUR_OF_DAY, Integer.parseInt(endTime.substring(11, 13)));
+//			endCalendar.set(Calendar.MINUTE, Integer.parseInt(endTime.substring(14, 16)) + 14); //Extends the end of lecture to 14.99min after lecture
+//			endCalendar.set(Calendar.SECOND, Integer.parseInt(endTime.substring(17, 19)) + 59);	
+//
+//			return (noteCalendar.after(startCalendar) && noteCalendar.before(endCalendar));
+//		}
+//		catch(NumberFormatException e)
+//		{
+//			log.write(false, "[ERROR] Network-NetworkServerDecodeSave; " + e.getMessage());
+//			return false;
+//		}
+//	}
 	
 	/**
 	 * Checks if a file has been completely written. Uses the linux program lsof. ONLY works for linux

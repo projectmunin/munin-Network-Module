@@ -1,3 +1,4 @@
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.SynchronousQueue;
 
 
@@ -35,10 +36,13 @@ public class NetworkServer
 		//Init SynchQueue
 		queue = new SynchronousQueue<String>(true);
 		
+		//Init semaphors
+		Semaphore databaseAccess = new Semaphore(1, true);
+		
 		//Starts threads and folder scanner
 		for(int i=0; i<numberOfCores; i++)
 		{
-			new Thread(new NetworkServerDecodeSave(log, imageFileSavePath, queue)).start();
+			new Thread(new NetworkServerDecodeSave(log, imageFileSavePath, queue, databaseAccess)).start();
 		}
 		
 		new ScanFolder(log, xmlFolderPath, queue).start();
