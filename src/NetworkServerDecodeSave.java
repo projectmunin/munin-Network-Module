@@ -92,6 +92,7 @@ public class NetworkServerDecodeSave extends Thread implements Runnable
 		EncodeDecodeXml xmlEditor = new EncodeDecodeXml(xmlFilePath, log);
 		String imageName =  xmlFilePath.substring(xmlFilePath.lastIndexOf("/") + 1).split("\\.")[0] + ".png"; //Adds file name and image typ
 		String imageTime = imageName.split("\\_")[1];
+		String imageTimeWithSec = imageTime + "_" + imageName.split("\\_")[2];
 		String period = getPeriod(imageTime);
 		
 		if (period.equals(""))
@@ -128,18 +129,8 @@ public class NetworkServerDecodeSave extends Thread implements Runnable
 												"VALUES('" + xmlEditor.readLectureName() + 
 												"', '" + period + "', '" + 
 												xmlEditor.readCourseCode() + "')");
-				}
-				
-				
-				//Inserts new lecture hall if needed
-				containResult =  containsState.executeQuery("SELECT name FROM lecture_halls WHERE name='" + 
-																			xmlEditor.readCourseCode() + "'");
-				if (!containResult.next())
-				{
-					Statement insertStat = connect.createStatement();
-					insertStat.executeUpdate("INSERT INTO lecture_halls(name) " +
-												"VALUES('" +  xmlEditor.readLectureHall() + "')");
-				}
+					insertStat.close();
+				}		
 				
 				
 				//Creates statement that will be used later
@@ -157,21 +148,24 @@ public class NetworkServerDecodeSave extends Thread implements Runnable
 				Boolean lectureFound = false;
 				while (!lectureFound && lectureResult.next())
 				{
-					lectureFound = isLectureNoteInLecture(imageTime, lectureResult.getString(2), lectureResult.getString(3));
+					lectureFound = isLectureNoteInLecture(imageTimeWithSec, lectureResult.getString(2), lectureResult.getString(3));
 				}
 				
 				if (lectureFound)
 				{
 					//Creates new lecture note
+					System.out.println("found"); //TODO rm
 					lectureNoteState.executeUpdate("INSERT INTO lecture_notes(id, lecture_id, " +
 													"camera_unit_name, processed, time, image) " +
 													"VALUES (null, '" + lectureResult.getString(1) + 
 													"', '" + imageName.split("\\_")[0] + "', 0, '" + 
-													imageTime + "', '" + imageFileSavePath + 
+													imageTimeWithSec + "', '" + imageFileSavePath + 
 													subPath + imageName + "')");
 					log.print("Found lecture, inserting new lecture note to that lecture");
 					log.write(true, "[SUCCESS] Network-NetworkServerDecodeSave; Inserted new " +
 							"lecture note into lecture with id: " + lectureResult.getString(1));
+					lectureNoteState.close();
+					lectureResult.close();
 				}
 				else
 				{
@@ -184,6 +178,7 @@ public class NetworkServerDecodeSave extends Thread implements Runnable
 											"', '2012-06-06 10:00:00', '2012-06-06 11.45.00', 0)"); //TODO fix the time
 					
 					//Finding the lecture that was just created. Need to know what id it got.
+					lectureGetState = connect.createStatement();
 					lectureResult = lectureGetState.executeQuery("SELECT id " +
 																	"FROM lectures " +
 																	"WHERE course_code='" + xmlEditor.readCourseCode() 
@@ -191,11 +186,12 @@ public class NetworkServerDecodeSave extends Thread implements Runnable
 																	"AND startTime='2012-06-06 10:00:00'"); //TODO fix the time
 					
 					//Creates new lecture note
+					lectureResult.next();
 					lectureNoteState.executeUpdate("INSERT INTO lecture_notes(id, lecture_id, " +
 													"camera_unit_name, processed, time, image) " +
 													"VALUES (null, '" + lectureResult.getString(1) + 
 													"', '" + imageName.split("\\_")[0] + "', 0, '" + 
-													imageTime + "', '" + imageFileSavePath + 
+													imageTimeWithSec + "', '" + imageFileSavePath + 
 													subPath + imageName + "')");
 					
 					log.print("Created new lecture that got id: " + lectureResult.getString(1) + 
@@ -203,6 +199,10 @@ public class NetworkServerDecodeSave extends Thread implements Runnable
 					log.write(true, "[SUCCESS] Network-NetworkServerDecodeSave; Created new " +
 											"lecture with id: " + lectureResult.getString(1) + 
 											" and inserted a lecture not into it");
+					lectureState.close();
+					lectureGetState.close();
+					lectureResult.close();
+					lectureNoteState.close();
 				}
 				
 			}
@@ -238,9 +238,12 @@ public class NetworkServerDecodeSave extends Thread implements Runnable
 			
 			//Inserts new lecture hall if needed
 			containResult =  containsState.executeQuery("SELECT name FROM lecture_halls WHERE name='" + 
-																		xmlEditor.readCourseCode() + "'");
+																		xmlEditor.readLectureHall() + "'");
+			System.out.println("check");
 			if (!containResult.next())
 			{
+				System.out.println("found");
+				System.out.println(containResult.getString(1) + " found string");
 				Statement insertStat = connect.createStatement();
 				insertStat.executeUpdate("INSERT INTO lecture_halls(name) " +
 											"VALUES('" +  xmlEditor.readLectureHall() + "')");
@@ -253,6 +256,7 @@ public class NetworkServerDecodeSave extends Thread implements Runnable
 			if (containResult.next())
 			{
 				//Updates camera_unit
+				System.out.println("upt");
 				int updresult = updateState.executeUpdate("UPDATE camera_units " +
 															"SET lecture_hall_name='" + xmlEditor.readLectureHall() + 
 															"', ip_address='" + xmlEditor.readRasPiIpAddress() + 
@@ -267,6 +271,7 @@ public class NetworkServerDecodeSave extends Thread implements Runnable
 			else
 			{
 				//Insert new camera_unit
+				System.out.println("ins");
 				int insertResult = updateState.executeUpdate("INSERT INTO camera_units(name, lecture_hall_name, " +
 																						"ip_address, password) " +
 															"VALUES('" + xmlEditor.readRasPiId() + "', '" + 
