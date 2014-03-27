@@ -9,6 +9,7 @@ import java.sql.Statement;
 import java.util.Calendar;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.SynchronousQueue;
+import java.io.File;
 
 /**
  * Decodes incoming xmlfile. Save the image at correct place and 
@@ -76,8 +77,8 @@ public class NetworkServerDecodeSave extends Thread implements Runnable
 															"located in scan folder: " + xmlFilePath);
 				}
 				
-//				new File(xmlFilePath).delete();
-//				log.print("Deleted old files");
+				new File(xmlFilePath).delete();
+				log.print("Deleted old files");
 			}			
 		}
 		catch (InterruptedException e) 
@@ -272,8 +273,6 @@ public class NetworkServerDecodeSave extends Thread implements Runnable
 																		xmlEditor.readLectureHall() + "'");
 			if (!containsResult.next())
 			{
-				System.out.println("found");
-				System.out.println(containsResult.getString(1) + " found string");
 				Statement insertState = connect.createStatement();
 				insertState.executeUpdate("INSERT INTO lecture_halls(name) " +
 											"VALUES('" +  xmlEditor.readLectureHall() + "')");
