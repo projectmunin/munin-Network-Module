@@ -69,7 +69,6 @@ public class GiveJobsImage extends Thread
 			while (unprocessedNotes.next())
 			{
 				//Get all previous notes for that lecture that have already been processed
-				
 				Statement getPrevStatement = connect.createStatement();
 				ResultSet previousNotes = getPrevStatement.executeQuery("SELECT image " +
 																		"FROM lecture_notes " +
@@ -82,7 +81,7 @@ public class GiveJobsImage extends Thread
 				String imagePaths = "";
 				while (previousNotes.next())
 				{
-					imagePaths = imagePaths + " " + previousNotes.getString(1);
+					imagePaths = imagePaths + " " + previousNotes.getString(1).split("\\.")[0] + ".rbg ";
 				}
 				getPrevStatement.close();
 				previousNotes.close();
@@ -94,7 +93,7 @@ public class GiveJobsImage extends Thread
 				{
 					Process externProgram;
 					externProgram = Runtime.getRuntime().exec(imageAnalysProgPath + " -n" + 
-											unprocessedNotes.getString(3) + "-i" + imagePaths);
+											unprocessedNotes.getString(3).split("\\.") + ".rgb -i" + imagePaths);
 					
 					//Updates the unprocessed note to processed
 					if (externProgram.waitFor() == 0)
@@ -103,6 +102,7 @@ public class GiveJobsImage extends Thread
 																	unprocessedNotes.getString(1));
 						log.write(true, "[SUCCESS] GiveJobsImage; The image analys program " +
 								"succeeded to analys image with id: " + unprocessedNotes.getString(1));
+						
 						
 						Statement  updateStatement = connect.createStatement();
 						int result = updateStatement.executeUpdate("UPDATE lecture_notes " +

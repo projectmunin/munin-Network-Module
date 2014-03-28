@@ -95,7 +95,7 @@ public class NetworkServerDecodeSave extends Thread implements Runnable
 	private void decodeXmlFile (String xmlFilePath)
 	{
 		EncodeDecodeXml xmlEditor = new EncodeDecodeXml(xmlFilePath, log);
-		String imageName =  xmlFilePath.substring(xmlFilePath.lastIndexOf("/") + 1).split("\\.")[0] + ".png"; //Adds file name and image typ
+		String imageName =  xmlFilePath.substring(xmlFilePath.lastIndexOf("/") + 1).split("\\.")[0] + ".rgb"; //Adds file name and image typ
 		String imageTime = imageName.split("\\_")[1];
 		String imageTimeWithSec = imageTime + "_" + imageName.split("\\_")[2];
 		String period = getPeriod(imageTime);
@@ -186,7 +186,7 @@ public class NetworkServerDecodeSave extends Thread implements Runnable
 													"VALUES (null, '" + lectureResult.getString(1) + 
 													"', '" + imageName.split("\\_")[0] + "', 0, '" + 
 													imageTimeWithSec + "', '" + imageFileSavePath + 
-													subPath + imageName + "')");
+													subPath + imageName.split("\\.")[0] + ".png')");
 					log.print("Found lecture, inserting new lecture note to that lecture");
 					log.write(true, "[SUCCESS] Network-NetworkServerDecodeSave; Inserted new " +
 							"lecture note into lecture with id: " + lectureResult.getString(1));
@@ -220,7 +220,7 @@ public class NetworkServerDecodeSave extends Thread implements Runnable
 													"VALUES (null, '" + lectureResult.getString(1) + 
 													"', '" + imageName.split("\\_")[0] + "', 0, '" + 
 													imageTimeWithSec + "', '" + imageFileSavePath + 
-													subPath + imageName + "')");
+													subPath + imageName.split("\\.")[0] + ".png')");
 					
 					log.print("Created new lecture that got id: " + lectureResult.getString(1) + 
 														" and inserted a lecture note into it");
