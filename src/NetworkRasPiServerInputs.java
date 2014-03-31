@@ -85,7 +85,7 @@ public class NetworkRasPiServerInputs extends Thread implements Runnable
 	{
 		try 
 		{
-			while(!isCompletelyWritten(xmlFilePath))
+			while(!(new isCompletelyWritten().check(xmlFilePath)))
 			{
 				sleep(intervalBetweenTries);
 			}
@@ -170,33 +170,4 @@ public class NetworkRasPiServerInputs extends Thread implements Runnable
 			log.write(false, "[ERROR] Network-NetworkRasPiServerInputs; " + e.getMessage());
 		} //TODO add cameraController startup command		
 	}
-	
-	/**
-	 * Checks if a file has been completely written. Uses the linux program lsof. ONLY works for linux
-	 * @param file The file that will be checked if it has been written completely
-	 * @return true if it has been completely written, otherwise false;
-	 */
-	private boolean isCompletelyWritten (String filePath)
-	{
-		try 
-		{
-			Process plsof = new ProcessBuilder(new String[]{"lsof", "|", "grep", filePath}).start();
-			BufferedReader reader = new BufferedReader(new InputStreamReader(plsof.getInputStream()));
-			if (reader.readLine() == null)
-			{
-				plsof.destroy();
-				reader.close();
-				return true;
-			}
-			plsof.destroy();
-			reader.close();
-			return false;
-		} 
-		catch (IOException e) 
-		{
-			log.write(false, "[ERROR] Network-NetworkRasPiServerInputs; " + e.getMessage());
-			return false;
-		}
-	}	
-	
 }

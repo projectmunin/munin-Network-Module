@@ -1,6 +1,3 @@
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -44,6 +41,10 @@ public class NetworkServerDecodeSave extends Thread implements Runnable
 		this.databaseAccess = databaseAccess;
 	}
 	
+	/**
+	 * The run function for the decode and save class. Continious check for 
+	 * new incoming files and do what is propriate to do for that file
+	 */
 	public void run ()
 	{
 		try
@@ -53,7 +54,7 @@ public class NetworkServerDecodeSave extends Thread implements Runnable
 				String xmlFilePath = queue.take();
 				log.print("Received this xmlfile: \"" + xmlFilePath + "\" from NetworkServer");
 				
-				while(!isCompletelyWritten(xmlFilePath))
+				while(!(new isCompletelyWritten().check(xmlFilePath)))
 				{
 					sleep(intervalBetweenTries);
 				}
@@ -103,7 +104,7 @@ public class NetworkServerDecodeSave extends Thread implements Runnable
 		if (period.equals(""))
 		{
 			log.write(false, "[ERROR] Network-NetworkServerDecodeSave; Invalid image. Image " +
-					"					wasn't taken in a period. Path to file: " + xmlFilePath);
+										"wasn't taken in a period. Path to file: " + xmlFilePath);
 		}
 		else
 		{
@@ -327,35 +328,7 @@ public class NetworkServerDecodeSave extends Thread implements Runnable
 			log.write(false, "[ERROR] Network-NetworkServerDecodeSave; " + e.getMessage());
 		}
 	}
-	
-	/**
-	 * Checks if a file has been completely written. Uses the linux program lsof. ONLY works for linux
-	 * @param file The file that will be checked if it has been written completely
-	 * @return true if it has been completely written, otherwise false;
-	 */
-	private boolean isCompletelyWritten (String filePath)
-	{
-		try 
-		{
-			Process plsof = new ProcessBuilder(new String[]{"lsof", "|", "grep", filePath}).start();
-			BufferedReader reader = new BufferedReader(new InputStreamReader(plsof.getInputStream()));
-			if (reader.readLine() == null)
-			{
-				plsof.destroy();
-				reader.close();
-				return true;
-			}
-			plsof.destroy();
-			reader.close();
-			return false;
-		} 
-		catch (IOException e) 
-		{
-			log.write(false, "[ERROR] Network-NetworkServerDecodeSave; " + e.getMessage());
-			return false;
-		}
-	}	
-	
+		
 	/**
 	 * Returns the period for the input image taken time. If period changes, you can see
 	 * how is looks in this link:
@@ -368,18 +341,27 @@ public class NetworkServerDecodeSave extends Thread implements Runnable
 		int currentMonth = Integer.parseInt(imageTime.substring(5, 7));
 		int currentDay = Integer.parseInt(imageTime.substring(8, 10));
 		int currentYear = Integer.parseInt(imageTime.substring(2, 4));
+		log.write(true, "[SUCCESS] Network-NetworkServerDecodeSave; input date: " + 
+									currentYear + "." + currentMonth + "." + currentDay);
 		
 		if (9 <= currentMonth && 10 >= currentMonth) //First period in a school year
 		{
 			return "HT" + currentYear + "-1";
 		}
-		else if (11 == currentMonth || 12 == currentMonth || (1 == currentMonth && currentDay <= 9)) //Second period
+		else if (11 == currentMonth || 12 == currentMonth || (1 == currentMonth && currentDay <= 11)) //Second period
 		{
 			return "HT" + currentYear + "-2";
 		}
-		else if (1 <= currentMonth && (3 >= currentMonth && currentDay <= 15)) //Third period
+		else if (1 <= currentMonth && 3 >= currentMonth) //Third period
 		{
-			return "VT" + currentYear + "-3";
+			if (currentMonth == 3 && currentDay <= 15)
+			{
+				return "VT" + currentYear + "-3";
+			}
+			else
+			{
+				return "VT" + currentYear + "-3";
+			}
 		}
 		else if (3 <= currentMonth && 6 >= currentMonth) //Fourth period
 		{

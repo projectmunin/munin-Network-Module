@@ -3,6 +3,7 @@ import java.util.concurrent.SynchronousQueue;
 
 /**
  * Main Program for the Raspberry PI. Start this one when on the Raspberry PI. 
+ * 
  * @author P. Andersson
  *
  */
@@ -81,13 +82,3 @@ public class NetworkRasPi
 		System.exit(0);
 	}
 }
-
-
-
-
-
-
-
-
-
-

@@ -95,6 +95,7 @@ public class NetworkServerSendConfigs
 		
 		//Sends new configs to rasPI
 		if (new NetworkSender(log, rasPiIp, targetFolder, rasPiId, rasPiPassword).trySendingFile(filePath))
+		//if (new NetworkSender(log, rasPiIp, targetFolder, "panda", rasPiPassword).trySendingFile(filePath)) //TOOD CHANGE BACK
 		{
 			log.write(true, "[SUCCESS] Network-NetworkServerSendCondfig; Sent new configs to raspi with ID: " + rasPiId);
 			log.print("Sent new configs to rasPi with ID " + rasPiId);

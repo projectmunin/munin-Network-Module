@@ -5,21 +5,30 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.ResultSet;
 
+/**
+ * Gives unprocessed images to the image analysis program and updates database
+ * 
+ * @author P. Andersson
+ * 
+ */
 public class GiveJobsImage extends Thread
 {
 	//Permanent configs
 	static Log log;
 	static Boolean debugMode = false;
 	static int waitTimeBetweenChecks = 180000; //3min
-	static int timeWaitBeforeAnalysingLectures = 1; //One hour
 	
-	static String imageAnalysProgPath = "/root/projectmunin/source/imageProcessing/prog"; //TODO change what the program name is
+	static String imageAnalysProgPath = "/home/panda/test/munin-Network-Module/src/converter"; //TODO change what the program name is
 	
 	//Database info
 	static String user = "root";
-	static String password = "060906";
+	static String password = "abc88";
 	static String URL = "//localhost/munin";
 	
+	/**
+	 * The main method. Starts and runs the program
+	 * @param Has the input arguments as a string list
+	 */
 	public static void main (String[] args) 
 	{
 		//Reads arguments
@@ -27,7 +36,6 @@ public class GiveJobsImage extends Thread
 		
 		//Sets folder and Log class
 		log = new Log("/home/panda/test/log/", debugMode);  //Log folder, Note: HAS it own log file!
-		log = new Log("D:/test/log/", debugMode);
 		
 		while (true)
 		{
@@ -92,8 +100,10 @@ public class GiveJobsImage extends Thread
 				if (!imagePaths.equals(""))
 				{
 					Process externProgram;
-					externProgram = Runtime.getRuntime().exec(imageAnalysProgPath + " -n" + 
-											unprocessedNotes.getString(3).split("\\.") + ".rgb -i" + imagePaths);
+//					externProgram = Runtime.getRuntime().exec(imageAnalysProgPath + " -n" + 
+//											unprocessedNotes.getString(3).toString().split("\\.")[0] + ".rgb -i" + imagePaths);
+					externProgram = Runtime.getRuntime().exec(imageAnalysProgPath + " 2592 1936 " + 
+					unprocessedNotes.getString(3).toString().split("\\.")[0] + ".rgb " + unprocessedNotes.getString(3).toString()); //TODO RM
 					
 					//Updates the unprocessed note to processed
 					if (externProgram.waitFor() == 0)
@@ -147,6 +157,16 @@ public class GiveJobsImage extends Thread
 				//If first note, makes it processed
 				else
 				{
+					Process externProgram;
+					externProgram = Runtime.getRuntime().exec(imageAnalysProgPath + " 2592 1936 " + 
+					unprocessedNotes.getString(3).toString().split("\\.")[0] + ".rgb " + unprocessedNotes.getString(3).toString()); //TODO RM
+					externProgram.waitFor();
+					
+//					Process externProgram;
+//					externProgram = Runtime.getRuntime().exec(imageAnalysProgPath + " -n" + 
+//											unprocessedNotes.getString(3).toString().split("\\.")[0] + ".rgb -i" + imagePaths);
+//					externProgram.waitFor();
+					
 					Statement  updateStatement = connect.createStatement();
 					int result = updateStatement.executeUpdate("UPDATE lecture_notes " +
 																"SET processed=1 " +
