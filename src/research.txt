@@ -1,0 +1,324 @@
+----------------- 
+https://se.timeedit.net/web/chalmers/db1/public/objects.html?max=15&fr=t&partajax=t&im=f&sid=3&l=en_US&search_text=ef&types=186
+-----------------
+
+  
+  <div id="objectbasketitemX0" data-id="192408.186"  data-idonly="192408" data-type="186" data-name="EF"  class="clickable2 searchObject loaded " >
+  <table id="table0" cellspacing="0" cellpadding="0" class="infotable infotablenormal">
+    
+ 	<td>
+ 	<div id="info0">
+    <div class="infoboxtitle ">
+      EF
+    </div> 
+   	<div class="objectfieldsextrawrap">
+   	<table cellspacing="0" class="objectfieldsextra">
+   	</table></div>
+    
+	</div>
+  </td>
+  </tr></table>
+  </div>
+  
+  
+    <span id="linksdata_o" data-linksbase="https://se.timeedit.net/web/chalmers/db1/public/objects?max=15&amp;fr=t&amp;partajax=t&amp;im=f&amp;sid=3&amp;l=en_US&amp;search_text=ef&amp;types=186" class="hidden"></span>
+
+
+
+var urls = ["https://se.timeedit.net/web/chalmers/db1/public/ri.html", "h=t&sid=3&p=0.m%2C20140630.x"];
+var keyValues = ["h=t", "sid=3", "p=0.m%2C20140630.x", "objects=192408.186", "ox=0", "types=0", "fe=0"];
+var extra;
+TEScramble.asURL(urls, keyValues, extra);
+
+
+------------------------ HC1 och EA
+
+var urls = ["https://se.timeedit.net/web/chalmers/db1/public/ri.html", "h=t&sid=3&p=0.m%2C20140630.x"]
+var keyValues = ["h=t", "sid=3", "p=0.m%2C20140630.x", "objects=162288.186,192402.186", "ox=0", "types=0", "fe=0"]
+
+
+
+
+-----------------
+https://se.timeedit.net/web/chalmers/db1/public/objects.html?max=15&fr=t&partajax=t&im=f&sid=3&l=en_US&search_text=h&types=186
+-----------------
+  
+  <div id="objectbasketitemX0" data-id="192313.186"  data-idonly="192313" data-type="186" data-name="2271"  class="clickable2 searchObject loaded " >
+  <table id="table0" cellspacing="0" cellpadding="0" class="infotable infotablenormal">
+    
+ 	<td>
+ 	<div id="info0">
+    <div class="infoboxtitle ">
+      2271
+    </div> 
+   	<div class="objectfieldsextrawrap">
+   	<table cellspacing="0" class="objectfieldsextra">
+   	</table></div>
+    
+	</div>
+  </td>
+  </tr></table>
+  </div>
+  
+  
+  <div id="objectbasketitemX1" data-id="192327.186"  data-idonly="192327" data-type="186" data-name="A-entre"  class="clickable2 searchObject loaded searchObjectEven" >
+  <table id="table1" cellspacing="0" cellpadding="0" class="infotable infotablenormal">
+    
+ 	<td>
+ 	<div id="info1">
+    <div class="infoboxtitle ">
+      A-entre
+    </div> 
+   	<div class="objectfieldsextrawrap">
+   	<table cellspacing="0" class="objectfieldsextra">
+   	</table></div>
+    
+	</div>
+  </td>
+  </tr></table>
+  </div>
+  
+  
+  <div id="objectbasketitemX2" data-id="192328.186"  data-idonly="192328" data-type="186" data-name="A-glasskåp"  class="clickable2 searchObject loaded " >
+  <table id="table2" cellspacing="0" cellpadding="0" class="infotable infotablenormal">
+    
+ 	<td>
+ 	<div id="info2">
+    <div class="infoboxtitle ">
+      A-glasskåp
+    </div> 
+   	<div class="objectfieldsextrawrap">
+   	<table cellspacing="0" class="objectfieldsextra">
+   	</table></div>
+    
+	</div>
+  </td>
+  </tr></table>
+  </div>
+  
+  
+  <div id="objectbasketitemX3" data-id="192331.186"  data-idonly="192331" data-type="186" data-name="A-receptio"  class="clickable2 searchObject loaded searchObjectEven" >
+  <table id="table3" cellspacing="0" cellpadding="0" class="infotable infotablenormal">
+    
+ 	<td>
+ 	<div id="info3">
+    <div class="infoboxtitle ">
+      A-receptio
+    </div> 
+   	<div class="objectfieldsextrawrap">
+   	<table cellspacing="0" class="objectfieldsextra">
+   	</table></div>
+    
+	</div>
+  </td>
+  </tr></table>
+  </div>
+  
+  
+  <div id="objectbasketitemX4" data-id="192647.186"  data-idonly="192647" data-type="186" data-name="ErikStemme"  class="clickable2 searchObject loaded " >
+  <table id="table4" cellspacing="0" cellpadding="0" class="infotable infotablenormal">
+    
+ 	<td>
+ 	<div id="info4">
+    <div class="infoboxtitle ">
+      ErikStemme
+    </div> 
+   	<div class="objectfieldsextrawrap">
+   	<table cellspacing="0" class="objectfieldsextra">
+   	</table></div>
+    
+	</div>
+  </td>
+  </tr></table>
+  </div>
+  
+  
+  <div id="objectbasketitemX5" data-id="203425.186"  data-idonly="203425" data-type="186" data-name="F-Hilbert"  class="clickable2 searchObject loaded searchObjectEven" >
+  <table id="table5" cellspacing="0" cellpadding="0" class="infotable infotablenormal">
+    
+ 	<td>
+ 	<div id="info5">
+    <div class="infoboxtitle ">
+      F-Hilbert
+    </div> 
+   	<div class="objectfieldsextrawrap">
+   	<table cellspacing="0" class="objectfieldsextra">
+   	</table></div>
+    
+	</div>
+  </td>
+  </tr></table>
+  </div>
+  
+  
+  <div id="objectbasketitemX6" data-id="203244.186"  data-idonly="203244" data-type="186" data-name="F-HusPlan5"  class="clickable2 searchObject loaded " >
+  <table id="table6" cellspacing="0" cellpadding="0" class="infotable infotablenormal">
+    
+ 	<td>
+ 	<div id="info6">
+    <div class="infoboxtitle ">
+      F-HusPlan5
+    </div> 
+   	<div class="objectfieldsextrawrap">
+   	<table cellspacing="0" class="objectfieldsextra">
+   	</table></div>
+    
+	</div>
+  </td>
+  </tr></table>
+  </div>
+  
+  
+  <div id="objectbasketitemX7" data-id="162293.186"  data-idonly="162293" data-type="186" data-name="HA1"  class="clickable2 searchObject loaded searchObjectEven" >
+  <table id="table7" cellspacing="0" cellpadding="0" class="infotable infotablenormal">
+    
+ 	<td>
+ 	<div id="info7">
+    <div class="infoboxtitle ">
+      HA1
+    </div> 
+   	<div class="objectfieldsextrawrap">
+   	<table cellspacing="0" class="objectfieldsextra">
+   	</table></div>
+    
+	</div>
+  </td>
+  </tr></table>
+  </div>
+  
+  
+  <div id="objectbasketitemX8" data-id="162295.186"  data-idonly="162295" data-type="186" data-name="HA2"  class="clickable2 searchObject loaded " >
+  <table id="table8" cellspacing="0" cellpadding="0" class="infotable infotablenormal">
+    
+ 	<td>
+ 	<div id="info8">
+    <div class="infoboxtitle ">
+      HA2
+    </div> 
+   	<div class="objectfieldsextrawrap">
+   	<table cellspacing="0" class="objectfieldsextra">
+   	</table></div>
+    
+	</div>
+  </td>
+  </tr></table>
+  </div>
+  
+  
+  <div id="objectbasketitemX9" data-id="162294.186"  data-idonly="162294" data-type="186" data-name="HA3"  class="clickable2 searchObject loaded searchObjectEven" >
+  <table id="table9" cellspacing="0" cellpadding="0" class="infotable infotablenormal">
+    
+ 	<td>
+ 	<div id="info9">
+    <div class="infoboxtitle ">
+      HA3
+    </div> 
+   	<div class="objectfieldsextrawrap">
+   	<table cellspacing="0" class="objectfieldsextra">
+   	</table></div>
+    
+	</div>
+  </td>
+  </tr></table>
+  </div>
+  
+  
+  <div id="objectbasketitemX10" data-id="162292.186"  data-idonly="162292" data-type="186" data-name="HA4"  class="clickable2 searchObject loaded " >
+  <table id="table10" cellspacing="0" cellpadding="0" class="infotable infotablenormal">
+    
+ 	<td>
+ 	<div id="info10">
+    <div class="infoboxtitle ">
+      HA4
+    </div> 
+   	<div class="objectfieldsextrawrap">
+   	<table cellspacing="0" class="objectfieldsextra">
+   	</table></div>
+    
+	</div>
+  </td>
+  </tr></table>
+  </div>
+  
+  
+  <div id="objectbasketitemX11" data-id="162298.186"  data-idonly="162298" data-type="186" data-name="HB1"  class="clickable2 searchObject loaded searchObjectEven" >
+  <table id="table11" cellspacing="0" cellpadding="0" class="infotable infotablenormal">
+    
+ 	<td>
+ 	<div id="info11">
+    <div class="infoboxtitle ">
+      HB1
+    </div> 
+   	<div class="objectfieldsextrawrap">
+   	<table cellspacing="0" class="objectfieldsextra">
+   	</table></div>
+    
+	</div>
+  </td>
+  </tr></table>
+  </div>
+  
+  
+  <div id="objectbasketitemX12" data-id="162310.186"  data-idonly="162310" data-type="186" data-name="HB2"  class="clickable2 searchObject loaded " >
+  <table id="table12" cellspacing="0" cellpadding="0" class="infotable infotablenormal">
+    
+ 	<td>
+ 	<div id="info12">
+    <div class="infoboxtitle ">
+      HB2
+    </div> 
+   	<div class="objectfieldsextrawrap">
+   	<table cellspacing="0" class="objectfieldsextra">
+   	</table></div>
+    
+	</div>
+  </td>
+  </tr></table>
+  </div>
+  
+  
+  <div id="objectbasketitemX13" data-id="162297.186"  data-idonly="162297" data-type="186" data-name="HB3"  class="clickable2 searchObject loaded searchObjectEven" >
+  <table id="table13" cellspacing="0" cellpadding="0" class="infotable infotablenormal">
+    
+ 	<td>
+ 	<div id="info13">
+    <div class="infoboxtitle ">
+      HB3
+    </div> 
+   	<div class="objectfieldsextrawrap">
+   	<table cellspacing="0" class="objectfieldsextra">
+   	</table></div>
+    
+	</div>
+  </td>
+  </tr></table>
+  </div>
+  
+  
+  <div id="objectbasketitemX14" data-id="162296.186"  data-idonly="162296" data-type="186" data-name="HB4"  class="clickable2 searchObject loaded " >
+  <table id="table14" cellspacing="0" cellpadding="0" class="infotable infotablenormal">
+    
+ 	<td>
+ 	<div id="info14">
+    <div class="infoboxtitle ">
+      HB4
+    </div> 
+   	<div class="objectfieldsextrawrap">
+   	<table cellspacing="0" class="objectfieldsextra">
+   	</table></div>
+    
+	</div>
+  </td>
+  </tr></table>
+  </div>
+  
+  <div id="nextPage_o15" style="display: none"></div>
+    <span id="linksdata_o" data-linksbase="https://se.timeedit.net/web/chalmers/db1/public/objects?max=15&amp;fr=t&amp;partajax=t&amp;im=f&amp;sid=3&amp;l=en_US&amp;search_text=h&amp;types=186" class="hidden"></span>
+      <p></p>
+      <div id="errorPage_o" style="display: none"></div>
+      <div id="bottom_o"></div>
+<div class="pageLinksWrap">
+     <a id="nextPageButton_o" href="javascript:PageLoaderNext_o();" class="clickable hoverlink loadNextPage" data-text="Show more">Show more</a>
+
+<span id="pagesData_o" data-pagesjson='{"currentPage":1,"pages":667,"start":0,"max":15,"total":10000}' class="hidden"></span>
+</div>
