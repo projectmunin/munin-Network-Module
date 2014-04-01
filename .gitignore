@@ -4,3 +4,16 @@
 *.jar
 *.war
 *.ear
+*.html
+src/test.java
+logfile2
+logfile3
+logfile
+data3
+data
+data2
+bin/research.txt
+bin/rgb888ToPng.cpp
+bin/min.js
+bin/extra.js
+src/JavaJavaScript.java

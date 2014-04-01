@@ -1,24 +1,39 @@
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Calendar;
+
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
 
 public class TimeEdit 
 {
-
-	public TimeEdit () 
+	//Global variables
+	private String room;
+	
+	public TimeEdit (String room) 
 	{
 		try 
 		{
-			URL url = new URL("https://se.timeedit.net/web/chalmers/db1/public/ri157XQQ718Z50Qv37063gZ6y5Y7003Q5Y11Y6.html");
+			this.room = room;
+			URL url = new URL(getRoomURL());
 			File file = new File("data");
 			download(url, file);
 		} 
@@ -29,6 +44,89 @@ public class TimeEdit
 		} 
 	}
 
+	/**
+	 * Find the url with all the lectures for input room
+	 * @return The url with all the lectures
+	 */
+	private String getRoomURL ()
+	{
+		try 
+		{
+			ScriptEngineManager manager = new ScriptEngineManager();
+			ScriptEngine engine = manager.getEngineByName("javascript");
+			
+			URL url = new URL("https://se.timeedit.net/web/chalmers/db1/public/objects.html?max=15&fr=t&partajax=t&im=f&sid=3&l=en_US&search_text=" + room + "&types=186");
+			File roomIdFile = new File("roomId.html");
+			download(url, roomIdFile);
+			
+			//Download the html file which contains the id for a room and adds that id to String "id"
+			BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(roomIdFile)));
+			String id = "";
+			String line;
+			while ((line = br.readLine()) != null)
+			{
+				if (line.contains("data-id="))
+				{
+					id = line.split("data-id=\"")[1].split("\"")[0];
+				}
+			}
+			roomIdFile.delete();
+			br.close();
+			System.out.println(id);
+			
+			//Uses the script and gets the url for all the lecture for a room
+			engine.eval(readFile("C:/Users/Andersson/Documents/GitHub/munin-Network-Module/src/min.js", StandardCharsets.UTF_8)); //CHANGE HERE IF LOCATION CHANGES!!!!
+			engine.eval(readFile("C:/Users/Andersson/Documents/GitHub/munin-Network-Module/src/extra.js", StandardCharsets.UTF_8)); //CHANGE HERE IF LOCATION CHANGES!!!!
+			engine.eval("var urls = ['https://se.timeedit.net/web/chalmers/db1/public/ri.html', 'h=t&sid=3&p=0.m%2C20140630.x'];");
+			engine.eval("var keyValues = ['h=t', 'sid=3', 'p=0.m%2C20140630.x', 'objects=" + id + "', 'ox=0', 'types=0', 'fe=0'];");
+			engine.eval("var url = TEScramble.asURL(urls, keyValues);");
+			String roomURL = (String)engine.get("url");
+
+			System.out.println(roomURL);
+			return roomURL;
+			
+		} 
+		catch (ScriptException e) 
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return "";
+		} 
+		catch (MalformedURLException e) 
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return "";
+		}
+		catch (FileNotFoundException e) 
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return "";
+		} 
+		catch (IOException e) 
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return "";
+		}
+	}
+	
+	private String readFile(String path, Charset encoding) 
+	{
+		try 
+		{
+			byte[] encoded = Files.readAllBytes(Paths.get(path));
+			return encoding.decode(ByteBuffer.wrap(encoded)).toString();
+		} 
+		catch (IOException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return "";
+		}
+	}
+	
 	/**
 	 * Dowloads target URL to output file
 	 * @param input input URL
@@ -84,7 +182,6 @@ public class TimeEdit
 	  	}
 	
 	/**
-	 * 
 	 * @param imageTime The time for the image, Syntax 2012-09-11_10:13:00
 	 * @return The start and endtime of lecture Syntax 2012-09-11 10:13:00;2012-09-11 10:45:00
 	 */
@@ -187,6 +284,7 @@ public class TimeEdit
 			
 			ReadString("data-name", "data3", "logfile3");
 			courseCode = ReadData("data-name", "logfile3", 11, 17);	
+			i=100000;
 			}
 			return courseCode[0];
 			
