@@ -2,147 +2,320 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.net.MalformedURLException;
 import java.net.URL;
-import java.io.*;
+import java.util.Calendar;
 
-public class TimeEdit {
-	
-public static void main(String[] args) {
-	URLdownload("https://se.timeedit.net/web/chalmers/db1/public/ri157XQQ718Z50Qv37063gZ6y5Y7003Q5Y11Y6.html");
-	LectureIDSearch("2014-03-18", 11, 24);
-	LectureIDSearch("Lecture ID", 11, 17);
-	URLdownload("https://se.timeedit.net/web/chalmers/db1/public/ri.html?h=f&sid=3&p=0.m%2C20140630.x&objects=162288.186&ox=0&types=0&fe=0&id=454132&fr=t&step=0");
-	LectureIDSearch("2014-03-18", 11, 24);
-}
+public class TimeEdit 
+{
 
-private static void download(URL input, File output)
-	throws IOException {
-    	InputStream in = input.openStream();
-    	try {
-    		OutputStream out = new FileOutputStream(output);
-    		try {
-    			copy(in, out);
-    		} 
-    		finally {
-    			out.close();
-    		}
-    	} 
-    	finally {
-    		in.close();
-    	}
-  	}
+	public TimeEdit () 
+	{
+		try 
+		{
+			URL url = new URL("https://se.timeedit.net/web/chalmers/db1/public/ri157XQQ718Z50Qv37063gZ6y5Y7003Q5Y11Y6.html");
+			File file = new File("data");
+			download(url, file);
+		} 
+		catch (MalformedURLException e) 
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} 
+	}
 
-  /**
- * @param in
- * @param out
- * @throws IOException
- * 
- */
-  
-
-  
-private static void copy(InputStream in, OutputStream out)
-	throws IOException {
-    	byte[] buffer = new byte[1024];
-    	while (true) {
-    		int readCount = in.read(buffer);
-    		if (readCount == -1) {
-    			break;
-    		}
-    		out.write(buffer, 0, readCount);
-    	}
-  	}
-
-//public static void main(String[] args) {
-//	try {
-//		URL url = new URL("https://se.timeedit.net/web/chalmers/db1/public/ri157XQQ718Z50Qv37063gZ6y5Y7003Q5Y11Y6.html");
-//		File file = new File("data");
-//		download(url, file);
-//	} 
-//		catch (IOException e) {
-//		e.printStackTrace();
-//	}
-//	LectureIDSearch("2014-03-18", 11, 24);
-//}
-
-public static void URLdownload(String args) {
-	try {
-		String urlIn;
-		urlIn = args;
-//		System.out.println(urlIn);
-		URL url = new URL(urlIn);
-		File file = new File("data");
-		download(url, file);
-	} 
+	/**
+	 * Dowloads target URL to output file
+	 * @param input input URL
+	 * @param output Output file
+	 */
+	private void download(URL input, File output)
+	{
+		try 
+		{
+			InputStream in = input.openStream();
+	    	try 
+	    	{
+	    		OutputStream out = new FileOutputStream(output);
+	    		try 
+	    		{
+	    			copy(in, out);
+	    		} 
+	    		finally 
+	    		{
+	    			out.close();
+	    		}
+	    	} 
+	    	finally 
+	    	{
+	    		in.close();
+	    	}
+		} 
 		catch (IOException e) {
-		e.printStackTrace();
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
-}
+	/**
+	 * Buffrar en instream som sedan skickas till outstream  
+	 * @param in InputStream
+	 * @param out OutputStream
+	 * @throws IOException
+	 */
+	private void copy(InputStream in, OutputStream out)
+		throws IOException 
+		{
+	    	byte[] buffer = new byte[1024];
+	    	while (true) 
+	    	{
+	    		int readCount = in.read(buffer);
+	    		if (readCount == -1) 
+	    		{
+	    			break;
+	    		}
+	    		out.write(buffer, 0, readCount);
+	    	}
+	  	}
+	
+	/**
+	 * 
+	 * @param imageTime The time for the image, Syntax 2012-09-11_10:13:00
+	 * @return The start and endtime of lecture Syntax 2012-09-11 10:13:00;2012-09-11 10:45:00
+	 */
+	public String getLectureTime (String imageTime)
+	{
+		String[] lectureTime = new String[10];
+		ReadString(imageTime.split("\\_")[0], "data", "logfile");
+		lectureTime = ReadData(imageTime.split("\\_")[0], "logfile", 11, 24);
+		
+		int index = 0;
+		
+		for (int i=0; i<lectureTime.length && lectureTime[i] != null; i++)
+		{
+			Calendar foundTimeStart =  Calendar.getInstance();// time to test: 12:15:00
+			foundTimeStart.set(0, 0, 0,
+					Integer.parseInt(lectureTime[i].substring(0, 2)),
+					Integer.parseInt(lectureTime[i].substring(3, 5)), 
+					0);
+			
+			Calendar foundLectureEnd = Calendar.getInstance(); // for example 12:00:00
+			foundLectureEnd.set(0, 0, 0,
+					Integer.parseInt(lectureTime[i].substring(8, 10)),
+					Integer.parseInt(lectureTime[i].substring(11, 13))+14, 
+					59);
 
-public static void LectureIDSearch (String info, int pointOne, int pointTwo) {
-      try {
-      	String infoSearch = info;
-//      	String IDSearch = "Lecture ID";
-          
-          // Open the file c:\test.txt as a buffered reader
-          BufferedReader bf = new BufferedReader(new FileReader("data"));
-
-          // Start a line count and declare a string to hold our current line.
-          String line;
-          int linecount = 0;
-          
-          int strings[] = new int[10];
-          int position[] = new int[10];
-//          int positionID[] = new int[10];
-          
-          int index = 0;
-          
-          String lectureTime[] = new String[10];
-//          String lectureID[] = new String[10];
-          
-          String stringFoundLine[] = new String[10];
-          
-          // Let the user know what we are searching for
-          System.out.println("Searching for " + infoSearch + " in file...");
-          
-          // Loop through each line, stashing the line into our line variable.
-          while (( line = bf.readLine()) != null){
-              // Increment the count and find the index of the word
-              linecount++;
-              int indexfound = line.indexOf(infoSearch);
-//              int indexfoundID = line.indexOf(IDSearch);
-
-              // If greater than -1, means we found the word
-              if (indexfound > -1) {
-                  System.out.println("Word was found at position " + indexfound + " on line " + linecount);
-                  stringFoundLine[index] = line;
-                  strings[index] = linecount;
-                  position[index] = indexfound;
-//                  positionID[index] = indexfoundID;
-                  lectureTime[index] = (stringFoundLine[index].substring((position[index]+pointOne), (position[index]+pointTwo)));
-//                  lectureTime[index] = (stringFoundLine[index].substring((position[index]+11), (position[index]+24)));
-//                  lectureID[index] = (stringFoundLine[index].substring((positionID[index]+11), (positionID[index]+17)));
-                  index++;
-              }
-          }
-          for (int i=0 ; i < index ; i++){
-          	System.out.println(strings[i]);
-          	System.out.println(position[i]);
-          	System.out.println(stringFoundLine[i]);
-          	System.out.println(stringFoundLine[i].substring((position[i]+11), (position[i])+24) );
-//          	System.out.println(stringFoundLine[i].substring((positionID[i]+11), (positionID[i])+17) );
-          }
-
-          // Close the file after done searching
-          bf.close();
-      }
-      catch (IOException e) {
-          System.out.println("IO Error Occurred: " + e.toString());
-      }
+			Calendar inputTime = Calendar.getInstance();
+			inputTime.set(0, 0, 0,
+					Integer.parseInt(imageTime.substring(11, 13)),
+					Integer.parseInt(imageTime.substring(14, 16)),
+					0);
+			
+//			System.out.println(foundTimeStart.getTime());
+//			System.out.println(foundLectureEnd.getTime())
+//			System.out.println(inputTime.getTime());
+			
+			if(inputTime.after(foundTimeStart) && inputTime.before(foundLectureEnd)){
+					index = i;
+			}
+						
+		}		
+		return lectureTime[index];
+	}
+	
+	public String getCourseName (String imageTime)
+	{
+		String[] lectureTime = new String[10];
+		ReadString(imageTime, "data", "logfile");
+		lectureTime = ReadData(imageTime, "logfile", 25, 100);
+		
+		for (int i=0; lectureTime[i] != null; i++)
+		{
+			lectureTime[i] = lectureTime[i].split("\\,")[0];
+		}
+		
+		return lectureTime[0];
+	}
+	
+	private String[] getLectureID (String imageTime)
+	{
+		
+		String[] lectureID = new String[10];
+		ReadString(imageTime, "data", "logfile");
+		lectureID = ReadData("data-id", "logfile", 9, 15);
+		
+		return lectureID;
+	}
+	
+	/**
+	 * Returns the coursecode for the lecture for the given time, Syntax: 2012-09-11
+	 * @param imageTime Input lecture date
+	 * @return The course code as a string
+	 */
+	public String getCourseCode (String imageTime)
+	{
+		try 
+		{
+			String[] lectureID = new String[10];
+			String[] courseSiteInfo = new String[10];
+			String[] courseCode = new String[10];
+			//lectureID = ReadString("2014-04-04", "data", "logfile");
+			lectureID = getLectureID(imageTime);
+			
+			for (int i=0; i<lectureID.length && lectureID[i] != null; i++)
+			{
+			
+			System.out.println("first lecture id: " + lectureID[0]);
+			System.out.println("first lecture id: " + lectureID[1]);
+			System.out.println("first lecture id: " + lectureID[2]);
+			
+			URL url2 = new URL("https://se.timeedit.net/web/chalmers/db1/public/ri.html?h=f&sid=3&p=0.m%2C20140630.x&objects=162288.186&ox=0&types=0&fe=0&id="+lectureID[i]+"&fr=t&step=0");
+			File file2 = new File("data2");
+			download(url2, file2);
+			
+			ReadString("objects/2", "data2", "logfile2");
+			courseSiteInfo[i] = ReadData("objects/2", "logfile2", 8, 32)[i];
+			
+			URL url3 = new URL("https://se.timeedit.net/web/chalmers/db1/public/objects/"+courseSiteInfo[i]);
+			File file3 = new File("data3");
+			download(url3, file3);
+			
+			ReadString("data-name", "data3", "logfile3");
+			courseCode = ReadData("data-name", "logfile3", 11, 17);	
+			}
+			return courseCode[0];
+			
+//			System.out.println("first lecture id: " + lectureID[0]);
+//			
+//			URL url2 = new URL("https://se.timeedit.net/web/chalmers/db1/public/ri.html?h=f&sid=3&p=0.m%2C20140630.x&objects=162288.186&ox=0&types=0&fe=0&id="+lectureID[0]+"&fr=t&step=0");
+//			File file2 = new File("data2");
+//			download(url2, file2);
+//			
+//			ReadString("objects/2", "data2", "logfile2");
+//			courseSiteInfo = ReadData("objects/2", "logfile2", 8, 32);
+//			
+//			URL url3 = new URL("https://se.timeedit.net/web/chalmers/db1/public/objects/"+courseSiteInfo[0]);
+//			File file3 = new File("data3");
+//			download(url3, file3);
+//			
+//			ReadString("data-name", "data3", "logfile3");
+//			courseCode = ReadData("data-name", "logfile3", 11, 17);	
+//			
+//			return courseCode[0];
+		} 
+		catch (MalformedURLException e) 
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return "";
+		} 		
+	}
+	
+	/**
+	 * Finds the string within the key word
+	 * @param searchWord Key word
+	 * @param fileToSearch File to be search
+	 * @param printTo 
+	 * @return
+	 */
+	private String[] ReadString (String searchWord, String fileToSearch, String printTo)
+	{
+	      try 
+	      {	    	  
+	          BufferedReader bf = new BufferedReader(new FileReader(fileToSearch));
+	
+	          int linecount = 0;
+	          String line;
+	          int strings[] = new int[10];
+	          int index = 0;
+	          String stringFoundLine[] = new String[10];
+	          while (( line = bf.readLine()) != null){
+	              linecount++;
+	              int indexfound = line.indexOf(searchWord);
+	
+	              if (indexfound > -1) {
+	                  stringFoundLine[index] = line;
+	                  strings[index] = linecount;
+	                  index++;
+	              }
+	          }
+	          		  
+	          File file = new File(printTo);  
+	          PrintWriter out = new PrintWriter(new FileWriter(file));  
+	          
+	          // Write each string in the array on a separate line  
+	          for (String s : stringFoundLine) {  
+	          	out.println(s);  
+	          }  
+	          		  
+	          out.close();
+	          
+//	          for (int i=0 ; i < index ; i++){
+//	        	  
+//	          	System.out.println(strings[i]);
+//	          	System.out.println(stringFoundLine[i]);
+//	          }
+	
+	          // Close the file after done searching
+	          bf.close();
+	          
+	          return stringFoundLine;
+	      }
+	      catch (IOException e) {
+	          System.out.println("IO Error Occurred: " + e.toString());
+	          return null;
+	      }
+	}
+	
+	/**
+	 * Uses to find data in a html file.
+	 * @param searchWord Key word to search for
+	 * @param fileToSearch The file to search in
+	 * @param pointOne Pointer for start substring
+	 * @param pointTwo Pointer for end substring
+	 * @return A String list of all the relevent data
+	 */
+	private static String[] ReadData (String searchWord, String fileToSearch, int pointOne, int pointTwo)
+	{
+	      try 
+	      {
+	    	  String infoSearch = searchWord;
+	    	  String fileName = fileToSearch;
+	          int p1 = pointOne;
+	          int p2 = pointTwo;
+	    	  
+	          BufferedReader bf = new BufferedReader(new FileReader(fileName));
+	
+	          String line;
+	
+	          int position[] = new int[10];
+	          int index = 0;
+	          String lectureInfo[] = new String[10];
+	          String stringFoundLine[] = new String[10];
+	          while (( line = bf.readLine()) != null){
+	          	int indexfound = line.indexOf(infoSearch);
+	              // If greater than -1, means we found the word
+	              if (indexfound > -1) {
+	                  stringFoundLine[index] = line;
+	                  position[index] = indexfound;
+	                  lectureInfo[index] = (stringFoundLine[index].substring((position[index]+p1), (position[index]+p2)));
+	                  index++;
+	              }
+	          }
+	
+	          // Close the file after done searching
+	          bf.close();
+	          return lectureInfo;
+	      }
+	      catch (IOException e) 
+	      {
+	          System.out.println("IO Error Occurred: " + e.toString());
+	          return null;
+	      }
 	}
 }
-
