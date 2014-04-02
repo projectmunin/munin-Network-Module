@@ -27,12 +27,14 @@ public class TimeEdit
 {
 	//Global variables
 	private String room;
+	private Calendar lastRefresh;
 	
 	public TimeEdit (String room) 
 	{
 		try 
 		{
 			this.room = room;
+			this.lastRefresh = Calendar.getInstance();
 			URL url = new URL(getRoomURL());
 			File file = new File("data");
 			download(url, file);
@@ -43,7 +45,151 @@ public class TimeEdit
 			e.printStackTrace();
 		} 
 	}
+	
+	/**
+	 * Returns the start and end time for the lecture input time is in
+	 * @param imageTime The time for the image, Syntax 2012-09-11_10:13:00
+	 * @return The start and endtime of lecture Syntax 2012-09-11 10:13:00;2012-09-11 10:45:00
+	 * Returns empty string if didn't find any lecture time
+	 */
+	public String getLectureTime (String imageTime)
+	{
+		String[] lectureTime = new String[10];
+		ReadString(imageTime.split("\\_")[0], "data", "logfile");
+		lectureTime = ReadData(imageTime.split("\\_")[0], "logfile", 11, 24);
+		
+		int index = whichLecture(lectureTime, imageTime);
+		if (index == -1)
+		{
+			return "";
+		}
+		
+		String startTime = imageTime.split("\\_")[0] + " " + lectureTime[index].split("\\-")[0].trim() + ":00";
+		String endTime = imageTime.split("\\_")[0] + " " + lectureTime[index].split("\\-")[1].trim() + ":00";
+		return startTime + ";" + endTime;
+	}
+	
+	/**
+	 * Returns the name for a course
+	 * @param The time for the input image, Syntax 2012-09-11_10:13:00
+	 * @return THe name for the course. Empty string if not found
+	 */
+	public String getCourseName (String imageTime)
+	{
+		String[] lectureTime = new String[10];
+		ReadString(imageTime.split("\\_")[0], "data", "logfile");
+		
+		//Gets number for the lecture, first lecture of day is 0
+		lectureTime = ReadData(imageTime.split("\\_")[0], "logfile", 11, 24);
+		
+		int index = whichLecture(lectureTime, imageTime);
+		if (index == -1)
+		{
+			return "";
+		}
+		
+		lectureTime = ReadData(imageTime.split("\\_")[0], "logfile", 25, 100); //DESSA fixa positioner :(
+		
+		return lectureTime[index].split("\\,")[0];
+	}
+	
+	/**
+	 * Returns the coursecode for the lecture for the given time, Syntax 2012-09-11_10:13:00
+	 * @param imageTime Input lecture date
+	 * @return The course code as a string, if not found returns null
+	 */
+	public String getCourseCode (String imageTime)
+	{
+		try 
+		{
+			String[] lectureID = new String[10];
+			String courseSiteInfo = "";
+			String courseCode = "";
+			String[] lectureTime = new String[10];
+			
+			//Gets number for the lecture, first lecture of day is 0
+			ReadString(imageTime.split("\\_")[0], "data", "logfile");
+			
+			lectureTime = ReadData(imageTime.split("\\_")[0], "logfile", 11, 24);
+			
+			int index = whichLecture(lectureTime, imageTime);
+			if (index == -1)
+			{
+				return "";
+			}
+			
+			//Gets the coursecode
+			lectureID = getLectureID(imageTime.split("\\_")[0]);
+			
+			System.out.println("lecture id: " + lectureID[index]); //TODO RM
+			
+			URL url2 = new URL("https://se.timeedit.net/web/chalmers/db1/public/ri.html?h=f&sid=3&p=0.m%2C20140630.x&objects=162288.186&ox=0&types=0&fe=0&id="+lectureID[index]+"&fr=t&step=0");
+			File file2 = new File("data2");
+			download(url2, file2);
+			
+			ReadString("objects/2", "data2", "logfile2");
+			courseSiteInfo = ReadData("objects/2", "logfile2", 8, 32)[0];
+			
+			URL url3 = new URL("https://se.timeedit.net/web/chalmers/db1/public/objects/"+courseSiteInfo);
+			File file3 = new File("data3");
+			download(url3, file3);
+			
+			ReadString("data-name", "data3", "logfile3");
+			courseCode = ReadData("data-name", "logfile3", 11, 17)[0];	
+			
+			return courseCode;
+		} 
+		catch (MalformedURLException e) 
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return "";
+		} 		
+	}
+	
+	/**
+	 * Redownload the downloaded timeedit file if needed
+	 */
+	private void refresh ()
+	{
+		Calendar currentTime = Calendar.getInstance();
+		if (lastRefresh.)
+		{
+			
+		}
+	}
 
+	private int whichLecture (String[] lectureTime, String imageTime)
+	{
+		for (int i=0; i<lectureTime.length && lectureTime[i] != null; i++)
+		{
+			Calendar foundTimeStart =  Calendar.getInstance();// time to test: 12:15:00
+			foundTimeStart.set(0, 0, 0,
+					Integer.parseInt(lectureTime[i].substring(0, 2)),
+					Integer.parseInt(lectureTime[i].substring(3, 5)), 
+					0);
+			
+			Calendar foundLectureEnd = Calendar.getInstance(); // for example 12:00:00
+			foundLectureEnd.set(0, 0, 0,
+					Integer.parseInt(lectureTime[i].substring(8, 10)),
+					Integer.parseInt(lectureTime[i].substring(11, 13))+14, 
+					59);
+
+			Calendar inputTime = Calendar.getInstance();
+			inputTime.set(0, 0, 0,
+					Integer.parseInt(imageTime.substring(11, 13)),
+					Integer.parseInt(imageTime.substring(14, 16)),
+					0);
+			
+			if(inputTime.after(foundTimeStart) && inputTime.before(foundLectureEnd))
+			{
+					return i;
+			}			
+		}
+		return -1;
+	}
+
+	
 	/**
 	 * Find the url with all the lectures for input room
 	 * @return The url with all the lectures
@@ -72,17 +218,17 @@ public class TimeEdit
 			}
 			roomIdFile.delete();
 			br.close();
-			System.out.println(id);
+			//System.out.println(id); //TODO RM
 			
 			//Uses the script and gets the url for all the lecture for a room
-			engine.eval(readFile("C:/Users/Andersson/Documents/GitHub/munin-Network-Module/src/min.js", StandardCharsets.UTF_8)); //CHANGE HERE IF LOCATION CHANGES!!!!
-			engine.eval(readFile("C:/Users/Andersson/Documents/GitHub/munin-Network-Module/src/extra.js", StandardCharsets.UTF_8)); //CHANGE HERE IF LOCATION CHANGES!!!!
+			engine.eval(readFile("min.js", StandardCharsets.UTF_8)); //CHANGE HERE IF LOCATION CHANGES!!!!
+			engine.eval(readFile("extra.js", StandardCharsets.UTF_8)); //CHANGE HERE IF LOCATION CHANGES!!!!
 			engine.eval("var urls = ['https://se.timeedit.net/web/chalmers/db1/public/ri.html', 'h=t&sid=3&p=0.m%2C20140630.x'];");
 			engine.eval("var keyValues = ['h=t', 'sid=3', 'p=0.m%2C20140630.x', 'objects=" + id + "', 'ox=0', 'types=0', 'fe=0'];");
 			engine.eval("var url = TEScramble.asURL(urls, keyValues);");
-			String roomURL = (String)engine.get("url");
+			String roomURL = engine.get("url").toString();
 
-			System.out.println(roomURL);
+			//System.out.println(roomURL); //TODO RM
 			return roomURL;
 			
 		} 
@@ -181,64 +327,6 @@ public class TimeEdit
 	    	}
 	  	}
 	
-	/**
-	 * @param imageTime The time for the image, Syntax 2012-09-11_10:13:00
-	 * @return The start and endtime of lecture Syntax 2012-09-11 10:13:00;2012-09-11 10:45:00
-	 */
-	public String getLectureTime (String imageTime)
-	{
-		String[] lectureTime = new String[10];
-		ReadString(imageTime.split("\\_")[0], "data", "logfile");
-		lectureTime = ReadData(imageTime.split("\\_")[0], "logfile", 11, 24);
-		
-		int index = 0;
-		
-		for (int i=0; i<lectureTime.length && lectureTime[i] != null; i++)
-		{
-			Calendar foundTimeStart =  Calendar.getInstance();// time to test: 12:15:00
-			foundTimeStart.set(0, 0, 0,
-					Integer.parseInt(lectureTime[i].substring(0, 2)),
-					Integer.parseInt(lectureTime[i].substring(3, 5)), 
-					0);
-			
-			Calendar foundLectureEnd = Calendar.getInstance(); // for example 12:00:00
-			foundLectureEnd.set(0, 0, 0,
-					Integer.parseInt(lectureTime[i].substring(8, 10)),
-					Integer.parseInt(lectureTime[i].substring(11, 13))+14, 
-					59);
-
-			Calendar inputTime = Calendar.getInstance();
-			inputTime.set(0, 0, 0,
-					Integer.parseInt(imageTime.substring(11, 13)),
-					Integer.parseInt(imageTime.substring(14, 16)),
-					0);
-			
-//			System.out.println(foundTimeStart.getTime());
-//			System.out.println(foundLectureEnd.getTime())
-//			System.out.println(inputTime.getTime());
-			
-			if(inputTime.after(foundTimeStart) && inputTime.before(foundLectureEnd)){
-					index = i;
-			}
-						
-		}		
-		return lectureTime[index];
-	}
-	
-	public String getCourseName (String imageTime)
-	{
-		String[] lectureTime = new String[10];
-		ReadString(imageTime, "data", "logfile");
-		lectureTime = ReadData(imageTime, "logfile", 25, 100);
-		
-		for (int i=0; lectureTime[i] != null; i++)
-		{
-			lectureTime[i] = lectureTime[i].split("\\,")[0];
-		}
-		
-		return lectureTime[0];
-	}
-	
 	private String[] getLectureID (String imageTime)
 	{
 		
@@ -247,71 +335,6 @@ public class TimeEdit
 		lectureID = ReadData("data-id", "logfile", 9, 15);
 		
 		return lectureID;
-	}
-	
-	/**
-	 * Returns the coursecode for the lecture for the given time, Syntax: 2012-09-11
-	 * @param imageTime Input lecture date
-	 * @return The course code as a string
-	 */
-	public String getCourseCode (String imageTime)
-	{
-		try 
-		{
-			String[] lectureID = new String[10];
-			String[] courseSiteInfo = new String[10];
-			String[] courseCode = new String[10];
-			//lectureID = ReadString("2014-04-04", "data", "logfile");
-			lectureID = getLectureID(imageTime);
-			
-			for (int i=0; i<lectureID.length && lectureID[i] != null; i++)
-			{
-			
-			System.out.println("first lecture id: " + lectureID[0]);
-			System.out.println("first lecture id: " + lectureID[1]);
-			System.out.println("first lecture id: " + lectureID[2]);
-			
-			URL url2 = new URL("https://se.timeedit.net/web/chalmers/db1/public/ri.html?h=f&sid=3&p=0.m%2C20140630.x&objects=162288.186&ox=0&types=0&fe=0&id="+lectureID[i]+"&fr=t&step=0");
-			File file2 = new File("data2");
-			download(url2, file2);
-			
-			ReadString("objects/2", "data2", "logfile2");
-			courseSiteInfo[i] = ReadData("objects/2", "logfile2", 8, 32)[i];
-			
-			URL url3 = new URL("https://se.timeedit.net/web/chalmers/db1/public/objects/"+courseSiteInfo[i]);
-			File file3 = new File("data3");
-			download(url3, file3);
-			
-			ReadString("data-name", "data3", "logfile3");
-			courseCode = ReadData("data-name", "logfile3", 11, 17);	
-			i=100000;
-			}
-			return courseCode[0];
-			
-//			System.out.println("first lecture id: " + lectureID[0]);
-//			
-//			URL url2 = new URL("https://se.timeedit.net/web/chalmers/db1/public/ri.html?h=f&sid=3&p=0.m%2C20140630.x&objects=162288.186&ox=0&types=0&fe=0&id="+lectureID[0]+"&fr=t&step=0");
-//			File file2 = new File("data2");
-//			download(url2, file2);
-//			
-//			ReadString("objects/2", "data2", "logfile2");
-//			courseSiteInfo = ReadData("objects/2", "logfile2", 8, 32);
-//			
-//			URL url3 = new URL("https://se.timeedit.net/web/chalmers/db1/public/objects/"+courseSiteInfo[0]);
-//			File file3 = new File("data3");
-//			download(url3, file3);
-//			
-//			ReadString("data-name", "data3", "logfile3");
-//			courseCode = ReadData("data-name", "logfile3", 11, 17);	
-//			
-//			return courseCode[0];
-		} 
-		catch (MalformedURLException e) 
-		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return "";
-		} 		
 	}
 	
 	/**
@@ -332,11 +355,13 @@ public class TimeEdit
 	          int strings[] = new int[10];
 	          int index = 0;
 	          String stringFoundLine[] = new String[10];
-	          while (( line = bf.readLine()) != null){
+	          while (( line = bf.readLine()) != null)
+	          {
 	              linecount++;
 	              int indexfound = line.indexOf(searchWord);
 	
-	              if (indexfound > -1) {
+	              if (indexfound > -1) 
+	              {
 	                  stringFoundLine[index] = line;
 	                  strings[index] = linecount;
 	                  index++;
@@ -347,17 +372,12 @@ public class TimeEdit
 	          PrintWriter out = new PrintWriter(new FileWriter(file));  
 	          
 	          // Write each string in the array on a separate line  
-	          for (String s : stringFoundLine) {  
-	          	out.println(s);  
+	          for (String s : stringFoundLine) 
+	          {  
+	          		out.println(s);  
 	          }  
 	          		  
 	          out.close();
-	          
-//	          for (int i=0 ; i < index ; i++){
-//	        	  
-//	          	System.out.println(strings[i]);
-//	          	System.out.println(stringFoundLine[i]);
-//	          }
 	
 	          // Close the file after done searching
 	          bf.close();
@@ -395,10 +415,12 @@ public class TimeEdit
 	          int index = 0;
 	          String lectureInfo[] = new String[10];
 	          String stringFoundLine[] = new String[10];
-	          while (( line = bf.readLine()) != null){
+	          while (( line = bf.readLine()) != null)
+	          {
 	          	int indexfound = line.indexOf(infoSearch);
 	              // If greater than -1, means we found the word
-	              if (indexfound > -1) {
+	              if (indexfound > -1) 
+	              {
 	                  stringFoundLine[index] = line;
 	                  position[index] = indexfound;
 	                  lectureInfo[index] = (stringFoundLine[index].substring((position[index]+p1), (position[index]+p2)));
