@@ -37,11 +37,12 @@ public class TimeEdit extends Thread
 	private Log log;
 	
 	//Final variables
-	final private int intervallBetweenRefresh = 1; //1 Hour
+	final private int intervallBetweenRefresh = 1; //Hour
 	final private String mainHtmlFile = "allLecture.html";
 	final private String tmpDataStorageMain = "allLecturesData.tmp";
 	final private String minScriptPath = "min.js";
 	final private String extraScriptPath = "extra.js";
+	final private int timeBeforeActiveLecture = 30; //Minutes 
 	
 	public TimeEdit (Log log, String room)
 	{
@@ -71,6 +72,7 @@ public class TimeEdit extends Thread
 	 */
 	public String getLectureTime (String imageTime)
 	{
+		refresh();
 		String[] lectureTime = new String[10];
 		ReadString(imageTime.split("\\_")[0], mainHtmlFile, tmpDataStorageMain);
 		lectureTime = ReadData(imageTime.split("\\_")[0], tmpDataStorageMain, 11, 24);
@@ -95,6 +97,7 @@ public class TimeEdit extends Thread
 	 */
 	public String getCourseName (String imageTime)
 	{
+		refresh();
 		String[] lectureTime = new String[10];
 		ReadString(imageTime.split("\\_")[0], mainHtmlFile, tmpDataStorageMain);
 		
@@ -122,6 +125,7 @@ public class TimeEdit extends Thread
 	{
 		try 
 		{
+			refresh();
 			String[] lectureID = new String[10];
 			String courseSiteInfo = "";
 			String courseCode = "";
@@ -168,6 +172,126 @@ public class TimeEdit extends Thread
 	}
 	
 	/**
+	 * Gets the time all lectures are active. If a day have all slot bocked, it is 9 hour 
+	 * active. Reacts 30min before a lectures starts
+	 * @return The time lectures are active in seconds. Zero if no lecture active in a 
+	 * near future.
+	 */
+	public int getLecturesActiveTime ()
+	{
+		refresh();
+		String[] lectureTime = new String[10];	
+		String currentTime;
+		
+		///////////////////////////
+		//Fixes the current date to a string in right format
+		///////////////
+		Calendar cal = Calendar.getInstance();
+		cal.add(Calendar.MONTH, 1);
+		currentTime = Integer.toString(cal.get(Calendar.YEAR)) + "-";
+
+		//Checks if only one char for month
+		if (Integer.toString(cal.get(Calendar.MONTH)).length() == 1)
+		{
+			currentTime = currentTime + "0" + Integer.toString(cal.get(Calendar.MONTH)) + "-";
+		}
+		else
+		{
+			currentTime = currentTime + Integer.toString(cal.get(Calendar.MONTH)) + "-";
+		}
+		
+		//Checks if only one char for day
+		if (Integer.toString(cal.get(Calendar.DATE)).length() == 1)
+		{
+			currentTime = currentTime + "0" + Integer.toString(cal.get(Calendar.DATE));
+		}
+		else
+		{
+			currentTime = currentTime + Integer.toString(cal.get(Calendar.DATE));
+		}
+		//////////////////////////////////
+		
+		//Gets all lecture for this day
+		ReadString(currentTime, mainHtmlFile, tmpDataStorageMain);
+		lectureTime = ReadData(currentTime, tmpDataStorageMain, 11, 24);
+		
+		
+		//Finding 
+		Calendar firstLectureStart =  Calendar.getInstance();
+		int index = -1;
+		for(int i=0; i<lectureTime.length && lectureTime[i] != null; i++)
+		{
+			Calendar thisLectureStart =  Calendar.getInstance();
+			thisLectureStart.set(Calendar.HOUR_OF_DAY, Integer.parseInt(lectureTime[i].substring(0, 2)));
+			thisLectureStart.set(Calendar.MINUTE, Integer.parseInt(lectureTime[i].substring(3, 5)));
+			thisLectureStart.add(Calendar.MONTH, 1);
+
+			Calendar thisLectureStartMinus1H =  Calendar.getInstance();
+			thisLectureStartMinus1H.set(Calendar.HOUR_OF_DAY, Integer.parseInt(lectureTime[i].substring(0, 2)));
+			thisLectureStartMinus1H.set(Calendar.MINUTE, Integer.parseInt(lectureTime[i].substring(3, 5)) - timeBeforeActiveLecture);
+			thisLectureStartMinus1H.add(Calendar.MONTH, 1);
+					
+			if (cal.before(thisLectureStart) && cal.after(thisLectureStartMinus1H))
+			{
+				index = i;
+				firstLectureStart.set(0, 0, 0,
+						Integer.parseInt(lectureTime[i].substring(0, 2)),
+						Integer.parseInt(lectureTime[i].substring(3, 5)), 
+						0);
+				break;
+			}
+		}
+		
+		if (index == -1)
+		{
+			return 0;
+		}
+		
+		//Determine the active time
+		for (int i=index; i<lectureTime.length && lectureTime[i] != null; i++)
+		{
+			Calendar thisLectureStart =  Calendar.getInstance();
+			thisLectureStart.set(0, 0, 0,
+					Integer.parseInt(lectureTime[i].substring(0, 2)),
+					Integer.parseInt(lectureTime[i].substring(3, 5)), 
+					0);
+			
+			Calendar thisLectureEnd = Calendar.getInstance();
+			thisLectureEnd.set(0, 0, 0,
+					Integer.parseInt(lectureTime[i].substring(8, 10)) + 1,
+					Integer.parseInt(lectureTime[i].substring(11, 13)), 
+					1);
+			
+			Calendar nextLectureStart =  Calendar.getInstance();
+			if (lectureTime[i+1] != null)
+			{
+				nextLectureStart.set(0, 0, 0,
+						Integer.parseInt(lectureTime[i+1].substring(0, 2)),
+						Integer.parseInt(lectureTime[i+1].substring(3, 5)), 
+						-1);
+			}
+			
+			if (lectureTime[i+1] == null || thisLectureEnd.before(nextLectureStart))
+			{
+				int startTime = 0;
+				startTime = firstLectureStart.get(Calendar.HOUR_OF_DAY) * 3600; //Start hour time
+				startTime = startTime + firstLectureStart.get(Calendar.MINUTE) * 60; //Start minutes time
+				
+				int endTime = 0;
+				thisLectureEnd.add(Calendar.HOUR_OF_DAY, -1);
+				thisLectureEnd.add(Calendar.MINUTE, + 14);
+				thisLectureEnd.add(Calendar.SECOND, + 59);
+				endTime = thisLectureEnd.get(Calendar.HOUR_OF_DAY) * 3600; //End hour time
+				endTime = endTime + thisLectureEnd.get(Calendar.MINUTE) * 60; //End minutes time
+				endTime = endTime + thisLectureEnd.get(Calendar.SECOND); //End seconds time
+				
+				return endTime-startTime;
+			}
+		}
+		return 0;
+	}
+	
+	/**
 	 * Redownload the timeedit file if last refresh was 1 hour ago
 	 */
 	private void refresh ()
@@ -201,13 +325,13 @@ public class TimeEdit extends Thread
 	{
 		for (int i=0; i<lectureTime.length && lectureTime[i] != null; i++)
 		{
-			Calendar foundLectureStart =  Calendar.getInstance();// time to test: 12:15:00
+			Calendar foundLectureStart =  Calendar.getInstance();
 			foundLectureStart.set(0, 0, 0,
 					Integer.parseInt(lectureTime[i].substring(0, 2)),
 					Integer.parseInt(lectureTime[i].substring(3, 5)), 
 					-1);
 			
-			Calendar foundLectureEnd = Calendar.getInstance(); // for example 12:00:00
+			Calendar foundLectureEnd = Calendar.getInstance();
 			foundLectureEnd.set(0, 0, 0,
 					Integer.parseInt(lectureTime[i].substring(8, 10)),
 					Integer.parseInt(lectureTime[i].substring(11, 13))+14, 
