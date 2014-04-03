@@ -23,10 +23,12 @@ public class NetworkRasPiServerInputs extends Thread implements Runnable
 	String folderPath;
 	SynchronousQueue<String> queue;
 	Thread senderProcess; //Only here so we dosen't create alots of threads sending configs to server
+	TimeEdit schema;
+	String cameraControllerPath = "fix"; //TODO FIX
 	
 	int intervalBetweenTries = 500; //0.5seconds
 	
-	public NetworkRasPiServerInputs (Log log, String folderPath, EncodeDecodeXml currentConfig, Semaphore configSem, Thread senderProcess)
+	public NetworkRasPiServerInputs (Log log, String folderPath, EncodeDecodeXml currentConfig, Semaphore configSem, Thread senderProcess, TimeEdit schema)
 	{
 		this.log = log;
 		this.currentConfig = currentConfig;
@@ -34,6 +36,7 @@ public class NetworkRasPiServerInputs extends Thread implements Runnable
 		this.folderPath = folderPath;
 		this.senderProcess = senderProcess;
 		queue = new SynchronousQueue<String>(true);
+		this.schema = schema;
 	}
 	
 	public void run ()
@@ -42,8 +45,8 @@ public class NetworkRasPiServerInputs extends Thread implements Runnable
 		
 		while (true)
 		{
-			//Checks if to start camera
-			checkIfToStartCamera();
+			//Start camera controller if it should
+			startCameraController();
 			
 			//Checks if to send RasPi configs
 			checkIfToSendConfigs();
@@ -143,31 +146,39 @@ public class NetworkRasPiServerInputs extends Thread implements Runnable
 			log.print("Sendning current config file to server, wont print done message in terminal");
 			log.write(true, "[Success] Network-NetworkRasPiServerInputs; Sending current config file");
 			senderProcess = new Thread(new NetworkSender(log, currentConfig, configSem));
-			senderProcess.start();  //TODO fix correct configfile to be sent
+			senderProcess.start(); 
 		}
 	}
 	
-	/**
-	 * Checks if the camera controller should start or not
-	 */
-	private void checkIfToStartCamera ()
-	{
-		//Need timeedit to be working or have correct api!
-	}
 	
 	/**
-	 * Start the camera controller. Will try to start it until it succeeds.
+	 * Start the camera controller if it should
 	 */
 	private void startCameraController ()
 	{
 		try
 		{
-			Process externProgram;
-			externProgram = Runtime.getRuntime().exec("ABC");
+			configSem.acquire();
+			schema.setLectureHall(currentConfig.readLectureHall());
+			int runTime = schema.getLecturesActiveTime()/60;
+			configSem.release();
+			if (runTime != 0)
+			{
+				Process externalProgram;
+				do 
+				{
+					externalProgram = Runtime.getRuntime().exec(cameraControllerPath + " -b 3 -c 3 -r " + runTime);
+					externalProgram.wait(180000); //Waits for 3min until it moves on, and error should have occured in 3min
+				} while (externalProgram.exitValue() == 1);				
+			}
 		} 
 		catch (IOException e) 
 		{
 			log.write(false, "[ERROR] Network-NetworkRasPiServerInputs; " + e.getMessage());
-		} //TODO add cameraController startup command		
+		} 	
+		catch (InterruptedException e) 
+		{
+			log.write(false, "[ERROR] Network-NetworkRasPiServerInputs; " + e.getMessage());
+		}
 	}
 }

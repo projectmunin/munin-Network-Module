@@ -64,6 +64,11 @@ public class TimeEdit extends Thread
 		} 
 	}
 	
+	public void setLectureHall(String room)
+	{
+		this.room = room;
+	}
+	
 	/**
 	 * Returns the start and end time for the lecture input time is in
 	 * @param imageTime The time for the image, Syntax 2012-09-11_10:13:00

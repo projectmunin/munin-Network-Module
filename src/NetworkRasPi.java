@@ -36,12 +36,15 @@ public class NetworkRasPi
 		//Init semaphors
 		Semaphore configSem = new Semaphore(1, true);
 		
+		//Init Schema
+		TimeEdit schema = new TimeEdit(log, configReader.readLectureHall());
+		
 		//Starts threads and folder scanner
 		Thread processConfigSender = new Thread(new NetworkSender(log, configReader, configSem)); //Only here to send RasPi configs to server at startup
 		processConfigSender.start();
 		
-		new Thread(new NetworkRasPiEncodeSend(log, xmlFolderPath, configReader, configSem, queue)).start();
-		new Thread(new NetworkRasPiServerInputs(log, serverInputFolderPath, configReader, configSem, processConfigSender)).start();
+		new Thread(new NetworkRasPiEncodeSend(log, xmlFolderPath, configReader, configSem, queue, schema)).start();
+		new Thread(new NetworkRasPiServerInputs(log, serverInputFolderPath, configReader, configSem, processConfigSender, schema)).start();
 
 		new ScanFolder(log, imageFolderPath, queue).start();
 	}
