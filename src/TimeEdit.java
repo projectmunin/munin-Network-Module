@@ -280,7 +280,7 @@ public class TimeEdit extends Thread
 			{
 				int startTime = 0;
 				startTime = firstLectureStart.get(Calendar.HOUR_OF_DAY) * 3600; //Start hour time
-				startTime = startTime + firstLectureStart.get(Calendar.MINUTE) * 60; //Start minutes time
+				startTime = startTime + firstLectureStart.get(Calendar.MINUTE) * 60 - timeBeforeActiveLecture; //Start minutes time
 				
 				int endTime = 0;
 				thisLectureEnd.add(Calendar.HOUR_OF_DAY, -1);
