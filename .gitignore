@@ -17,3 +17,6 @@ bin/rgb888ToPng.cpp
 bin/min.js
 bin/extra.js
 src/JavaJavaScript.java
+*.tmp
+src/JavaJavaScript.java
+src/JavaJavaScript.java

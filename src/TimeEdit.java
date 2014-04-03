@@ -23,26 +23,43 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
-public class TimeEdit 
+/**
+ * This class uses timeedit to get course code, course name and more 
+ * 
+ * @author P. Andersson & M. Undgård
+ *
+ */
+public class TimeEdit extends Thread
 {
 	//Global variables
 	private String room;
 	private Calendar lastRefresh;
+	private Log log;
 	
-	public TimeEdit (String room) 
+	//Final variables
+	final private int intervallBetweenRefresh = 1; //1 Hour
+	final private String mainHtmlFile = "allLecture.html";
+	final private String tmpDataStorageMain = "allLecturesData.tmp";
+	final private String minScriptPath = "min.js";
+	final private String extraScriptPath = "extra.js";
+	
+	public TimeEdit (Log log, String room)
 	{
 		try 
 		{
+			this.log = log;
 			this.room = room;
 			this.lastRefresh = Calendar.getInstance();
+			lastRefresh.add(Calendar.HOUR_OF_DAY, intervallBetweenRefresh);			
+			
+			//Downloads the html file that conatins all lectures for a room
 			URL url = new URL(getRoomURL());
-			File file = new File("data");
+			File file = new File(mainHtmlFile);
 			download(url, file);
 		} 
 		catch (MalformedURLException e) 
 		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			log.write(false, "[ERROR] TimeEdit; " + e.getMessage());
 		} 
 	}
 	
@@ -55,17 +72,19 @@ public class TimeEdit
 	public String getLectureTime (String imageTime)
 	{
 		String[] lectureTime = new String[10];
-		ReadString(imageTime.split("\\_")[0], "data", "logfile");
-		lectureTime = ReadData(imageTime.split("\\_")[0], "logfile", 11, 24);
+		ReadString(imageTime.split("\\_")[0], mainHtmlFile, tmpDataStorageMain);
+		lectureTime = ReadData(imageTime.split("\\_")[0], tmpDataStorageMain, 11, 24);
 		
 		int index = whichLecture(lectureTime, imageTime);
 		if (index == -1)
 		{
+			log.write(false, "[WARNING] TimeEdit; Could not found a lecture time for time: " + imageTime);
 			return "";
 		}
 		
 		String startTime = imageTime.split("\\_")[0] + " " + lectureTime[index].split("\\-")[0].trim() + ":00";
 		String endTime = imageTime.split("\\_")[0] + " " + lectureTime[index].split("\\-")[1].trim() + ":00";
+		log.write(true, "[SUCCESS] TimeEdit; Found lecture with start time: " + startTime  + " and end time " + endTime);
 		return startTime + ";" + endTime;
 	}
 	
@@ -77,19 +96,20 @@ public class TimeEdit
 	public String getCourseName (String imageTime)
 	{
 		String[] lectureTime = new String[10];
-		ReadString(imageTime.split("\\_")[0], "data", "logfile");
+		ReadString(imageTime.split("\\_")[0], mainHtmlFile, tmpDataStorageMain);
 		
 		//Gets number for the lecture, first lecture of day is 0
-		lectureTime = ReadData(imageTime.split("\\_")[0], "logfile", 11, 24);
+		lectureTime = ReadData(imageTime.split("\\_")[0], tmpDataStorageMain, 11, 24);
 		
 		int index = whichLecture(lectureTime, imageTime);
 		if (index == -1)
 		{
+			log.write(false, "[WARNING] TimeEdit; Could not found a course name for image with time: " + imageTime);
 			return "";
 		}
 		
-		lectureTime = ReadData(imageTime.split("\\_")[0], "logfile", 25, 100); //DESSA fixa positioner :(
-		
+		lectureTime = ReadData(imageTime.split("\\_")[0], tmpDataStorageMain, 25, 100);
+		log.write(true, "[SUCCESS] TimeEdit; Found course name: " + lectureTime[index].split("\\,")[0]);
 		return lectureTime[index].split("\\,")[0];
 	}
 	
@@ -108,66 +128,84 @@ public class TimeEdit
 			String[] lectureTime = new String[10];
 			
 			//Gets number for the lecture, first lecture of day is 0
-			ReadString(imageTime.split("\\_")[0], "data", "logfile");
+			ReadString(imageTime.split("\\_")[0], mainHtmlFile, tmpDataStorageMain);
 			
-			lectureTime = ReadData(imageTime.split("\\_")[0], "logfile", 11, 24);
+			lectureTime = ReadData(imageTime.split("\\_")[0], tmpDataStorageMain, 11, 24);
 			
 			int index = whichLecture(lectureTime, imageTime);
 			if (index == -1)
 			{
+				log.write(false, "[WARNING] TimeEdit; Could not found a course code for time: " + imageTime);
 				return "";
 			}
 			
 			//Gets the coursecode
 			lectureID = getLectureID(imageTime.split("\\_")[0]);
 			
-			System.out.println("lecture id: " + lectureID[index]); //TODO RM
-			
 			URL url2 = new URL("https://se.timeedit.net/web/chalmers/db1/public/ri.html?h=f&sid=3&p=0.m%2C20140630.x&objects=162288.186&ox=0&types=0&fe=0&id="+lectureID[index]+"&fr=t&step=0");
-			File file2 = new File("data2");
+			File file2 = new File("lectureBox.html");
 			download(url2, file2);
 			
-			ReadString("objects/2", "data2", "logfile2");
-			courseSiteInfo = ReadData("objects/2", "logfile2", 8, 32)[0];
+			ReadString("objects/2", "lectureBox.html", "lectureBoxData.tmp");
+			courseSiteInfo = ReadData("objects/2", "lectureBoxData.tmp", 8, 32)[0];
 			
 			URL url3 = new URL("https://se.timeedit.net/web/chalmers/db1/public/objects/"+courseSiteInfo);
-			File file3 = new File("data3");
+			File file3 = new File("courseData.html");
 			download(url3, file3);
 			
-			ReadString("data-name", "data3", "logfile3");
-			courseCode = ReadData("data-name", "logfile3", 11, 17)[0];	
+			ReadString("data-name", "courseData.html", "courseData.tmp");
+			courseCode = ReadData("data-name", "courseData.tmp", 11, 17)[0];	
+			
+			log.write(true, "[SUCCESS] TimeEdit; Found course code: " + courseCode);
 			
 			return courseCode;
 		} 
 		catch (MalformedURLException e) 
 		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			log.write(false, "[ERROR] TimeEdit; " + e.getMessage());
 			return "";
 		} 		
 	}
 	
 	/**
-	 * Redownload the downloaded timeedit file if needed
+	 * Redownload the timeedit file if last refresh was 1 hour ago
 	 */
 	private void refresh ()
 	{
-		Calendar currentTime = Calendar.getInstance();
-		if (lastRefresh.)
+		try
 		{
-			
+			Calendar currentTime = Calendar.getInstance();
+			if (currentTime.after(lastRefresh))
+			{
+				URL url = new URL(getRoomURL());
+				File file = new File(mainHtmlFile);
+				download(url, file);
+				lastRefresh = currentTime;
+				lastRefresh.add(Calendar.HOUR_OF_DAY, intervallBetweenRefresh);
+			}
 		}
+		catch (MalformedURLException e) 
+		{
+			log.write(false, "[ERROR] TimeEdit; " + e.getMessage());
+		} 	
 	}
 
+	/**
+	 * Finds out which of all lecture in a day to chose from. All lecture
+	 * gets +14.49min at their end time 
+	 * @param lectureTime A string list with all the lecture times
+	 * @param imageTime The time which should fit into one of the input lectures. 
+	 * @return The index of which lecture that have been chosen.
+	 */
 	private int whichLecture (String[] lectureTime, String imageTime)
 	{
 		for (int i=0; i<lectureTime.length && lectureTime[i] != null; i++)
 		{
-			Calendar foundTimeStart =  Calendar.getInstance();// time to test: 12:15:00
-			foundTimeStart.set(0, 0, 0,
+			Calendar foundLectureStart =  Calendar.getInstance();// time to test: 12:15:00
+			foundLectureStart.set(0, 0, 0,
 					Integer.parseInt(lectureTime[i].substring(0, 2)),
 					Integer.parseInt(lectureTime[i].substring(3, 5)), 
-					0);
+					-1);
 			
 			Calendar foundLectureEnd = Calendar.getInstance(); // for example 12:00:00
 			foundLectureEnd.set(0, 0, 0,
@@ -179,17 +217,16 @@ public class TimeEdit
 			inputTime.set(0, 0, 0,
 					Integer.parseInt(imageTime.substring(11, 13)),
 					Integer.parseInt(imageTime.substring(14, 16)),
-					0);
+					Integer.parseInt(imageTime.substring(17, 19)));
 			
-			if(inputTime.after(foundTimeStart) && inputTime.before(foundLectureEnd))
+			if(inputTime.after(foundLectureStart) && inputTime.before(foundLectureEnd))
 			{
-					return i;
+				return i;
 			}			
 		}
 		return -1;
 	}
 
-	
 	/**
 	 * Find the url with all the lectures for input room
 	 * @return The url with all the lectures
@@ -218,42 +255,36 @@ public class TimeEdit
 			}
 			roomIdFile.delete();
 			br.close();
-			//System.out.println(id); //TODO RM
 			
 			//Uses the script and gets the url for all the lecture for a room
-			engine.eval(readFile("min.js", StandardCharsets.UTF_8)); //CHANGE HERE IF LOCATION CHANGES!!!!
-			engine.eval(readFile("extra.js", StandardCharsets.UTF_8)); //CHANGE HERE IF LOCATION CHANGES!!!!
+			engine.eval(readFile(minScriptPath, StandardCharsets.UTF_8));
+			engine.eval(readFile(extraScriptPath, StandardCharsets.UTF_8));
 			engine.eval("var urls = ['https://se.timeedit.net/web/chalmers/db1/public/ri.html', 'h=t&sid=3&p=0.m%2C20140630.x'];");
 			engine.eval("var keyValues = ['h=t', 'sid=3', 'p=0.m%2C20140630.x', 'objects=" + id + "', 'ox=0', 'types=0', 'fe=0'];");
 			engine.eval("var url = TEScramble.asURL(urls, keyValues);");
 			String roomURL = engine.get("url").toString();
 
-			//System.out.println(roomURL); //TODO RM
 			return roomURL;
 			
 		} 
 		catch (ScriptException e) 
 		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			log.write(false, "[ERROR] TimeEdit; " + e.getMessage());
 			return "";
 		} 
 		catch (MalformedURLException e) 
 		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			log.write(false, "[ERROR] TimeEdit; " + e.getMessage());
 			return "";
 		}
 		catch (FileNotFoundException e) 
 		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			log.write(false, "[ERROR] TimeEdit; " + e.getMessage());
 			return "";
 		} 
 		catch (IOException e) 
 		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			log.write(false, "[ERROR] TimeEdit; " + e.getMessage());
 			return "";
 		}
 	}
@@ -267,8 +298,7 @@ public class TimeEdit
 		} 
 		catch (IOException e)
 		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			log.write(false, "[ERROR] TimeEdit; " + e.getMessage());
 			return "";
 		}
 	}
@@ -300,9 +330,9 @@ public class TimeEdit
 	    		in.close();
 	    	}
 		} 
-		catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		catch (IOException e) 
+		{
+			log.write(false, "[ERROR] TimeEdit; " + e.getMessage());
 		}
 	}
 	
@@ -331,8 +361,8 @@ public class TimeEdit
 	{
 		
 		String[] lectureID = new String[10];
-		ReadString(imageTime, "data", "logfile");
-		lectureID = ReadData("data-id", "logfile", 9, 15);
+		ReadString(imageTime, mainHtmlFile, tmpDataStorageMain);
+		lectureID = ReadData("data-id", tmpDataStorageMain, 9, 15);
 		
 		return lectureID;
 	}
@@ -384,8 +414,9 @@ public class TimeEdit
 	          
 	          return stringFoundLine;
 	      }
-	      catch (IOException e) {
-	          System.out.println("IO Error Occurred: " + e.toString());
+	      catch (IOException e) 
+	      {
+	    	  log.write(false, "[ERROR] TimeEdit; " + e.getMessage());
 	          return null;
 	      }
 	}
@@ -398,7 +429,7 @@ public class TimeEdit
 	 * @param pointTwo Pointer for end substring
 	 * @return A String list of all the relevent data
 	 */
-	private static String[] ReadData (String searchWord, String fileToSearch, int pointOne, int pointTwo)
+	private String[] ReadData (String searchWord, String fileToSearch, int pointOne, int pointTwo)
 	{
 	      try 
 	      {
@@ -434,7 +465,7 @@ public class TimeEdit
 	      }
 	      catch (IOException e) 
 	      {
-	          System.out.println("IO Error Occurred: " + e.toString());
+	    	  log.write(false, "[ERROR] TimeEdit; " + e.getMessage());
 	          return null;
 	      }
 	}
