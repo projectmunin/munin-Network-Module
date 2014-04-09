@@ -26,7 +26,7 @@ import javax.script.ScriptException;
 /**
  * This class uses timeedit to get course code, course name and more 
  * 
- * @author P. Andersson & M. Undgård
+ * @author P. Andersson & M. Undgard
  *
  */
 public class TimeEdit extends Thread
@@ -220,6 +220,8 @@ public class TimeEdit extends Thread
 		ReadString(currentTime, mainHtmlFile, tmpDataStorageMain);
 		lectureTime = ReadData(currentTime, tmpDataStorageMain, 11, 24);
 		
+		System.out.println("First lecture that day " + lectureTime[0]); //TODO RM
+		
 		
 		//Finding 
 		Calendar firstLectureStart =  Calendar.getInstance();
@@ -393,6 +395,7 @@ public class TimeEdit extends Thread
 			engine.eval("var url = TEScramble.asURL(urls, keyValues);");
 			String roomURL = engine.get("url").toString();
 
+			log.print("Room url: " + roomURL);
 			return roomURL;
 			
 		} 

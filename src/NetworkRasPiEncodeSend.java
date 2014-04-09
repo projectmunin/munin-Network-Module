@@ -56,7 +56,7 @@ public class NetworkRasPiEncodeSend extends Thread implements Runnable
 				String xmlFilePath = encodeXmlFile(imageFilePath, imageName);
 				if (xmlFilePath.equals(""))
 				{
-					log.print("It was no lecutre at time: " + imageName.substring(0, 19));
+					log.print("No lecutre at time found: " + imageName.substring(0, 19));
 					new File(imageFilePath).delete();
 				}
 				else
@@ -115,7 +115,7 @@ public class NetworkRasPiEncodeSend extends Thread implements Runnable
 //				xmlEditor.addLectureName("DataBASER"); //TODO use timeedot class
 				xmlEditor.addCourseCode(courseCode);
 				xmlEditor.addLectureName(schema.getCourseName(imageName.substring(0, 19)));
-				xmlEditor.addTimeStamp(imageName.substring(0, 19)); //Change here if fileName for images changes!!!
+			//	xmlEditor.addTimeStamp(imageName.substring(0, 19)); //Change here if fileName for images changes!!!
 //				xmlEditor.addLectureTime("2012-06-06 10:00:00;2012-06-06 11:45:00"); //TODO use timeedit class
 				xmlEditor.addLectureTime(schema.getLectureTime(imageName.substring(0, 19)));
 				configSem.release();

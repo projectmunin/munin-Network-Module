@@ -162,19 +162,22 @@ public class NetworkRasPiServerInputs extends Thread implements Runnable
 			schema.setLectureHall(currentConfig.readLectureHall());
 			int runTime = schema.getLecturesActiveTime()/60;
 			configSem.release();
+			log.write(true, "[Success] Network-NetworkRasPiServerInputs; The camera controller starts for: "
+																						+ runTime + " min");
 			if (runTime != 0)
 			{
 				Process externalProgram;
 				do 
 				{
-					externalProgram = Runtime.getRuntime().exec(cameraControllerPath + " -b 3 -c 3 -r " + runTime);
+					externalProgram = Runtime.getRuntime().exec(cameraControllerPath + " -b 3 -c 3 -r " + runTime); //TODO fix command
 					externalProgram.wait(180000); //Waits for 3min until it moves on, and error should have occured in 3min
-				} while (externalProgram.exitValue() == 1);				
+				} while (externalProgram.exitValue() == 1);			
 			}
 		} 
-		catch (IOException e) 
+		catch (IOException e)
 		{
-			log.write(false, "[ERROR] Network-NetworkRasPiServerInputs; " + e.getMessage());
+			//Will get here if the program haven't exits get. It should 
+			//get here if program starts correctly. 
 		} 	
 		catch (InterruptedException e) 
 		{
